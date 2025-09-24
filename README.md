@@ -1,3 +1,16 @@
+npx create-vite@latest ton-mixer --template react-ts
+cd ton-mixer
+npm install @mui/material@7.1.0 @emotion/react @emotion/styled framer-motion lucide-react tonconnect-sdk
+npm install -D @types/react@18.2.15 @types/react-dom@18.2.7 typescript@5.1.6 vite@4.4.9
+npm install @mui/material @emotion/react @emotion/styled
+npm install react-router-dom @types/react-router-dom --save
+If you also use @mui/icons-material or @mui/lab, install them as well:
+
+bash
+npm install @mui/icons-material @mui/lab
+
+Схема проекта TON Mixer 
+Общее описание проекта 
 
 TON Mixer - это децентрализованный сервис для обеспечения приватности транзакций в сети TON. Проект позволяет пользователям смешивать свои TON, чтобы скрыть источник происхождения средств, используя смарт-контракт и три пула с разными параметрами. 
 Архитектура проекта 
@@ -695,3 +708,30 @@ Shared Module (UI, Utils, Services)
 7. **Безопасность**: Проверки авторизации, валидация данных, безопасное хранение
 
 Эта архитектура обеспечивает профессиональную структуру проекта, соответствующую лучшим практикам разработки React приложений, и готова к масштабированию и долгосрочной поддержке.
+
+src/features/home/
+├── components/
+│   ├── HeroSection.tsx
+│   ├── QuickMixSection.tsx
+│   ├── PoolSelectionSection.tsx
+│   ├── AdvancedMixSection.tsx
+│   ├── StatsOverviewSection.tsx
+│   ├── FeaturesSection.tsx
+│   ├── RecentTransactionsSection.tsx
+│   ├── CTASection.tsx
+│   ├── StatCard.tsx
+│   ├── FeatureCard.tsx
+│   └── index.ts
+├── hooks/
+│   ├── useHomeData.ts
+│   └── index.ts
+├── services/
+│   ├── homeService.ts
+│   └── index.ts
+├── types/
+│   ├── home.types.ts
+│   └── index.ts
+├── utils/
+│   ├── homeUtils.ts
+│   └── index.ts
+└── index.ts
