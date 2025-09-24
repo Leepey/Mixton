@@ -1,0 +1,92 @@
+/* src/styles/neon.css */
+/* Неоновые эффекты для элементов интерфейса */
+
+.neon-text {
+  text-shadow: 0 0 10px rgba(0, 212, 254, 0.8),
+               0 0 20px rgba(0, 212, 254, 0.6),
+               0 0 30px rgba(0, 212, 254, 0.4);
+}
+
+.neon-border {
+  border: 1px solid rgba(0, 212, 254, 0.8);
+  box-shadow: 0 0 10px rgba(0, 212, 254, 0.6),
+              inset 0 0 10px rgba(0, 212, 254, 0.2);
+}
+
+.neon-glow {
+  box-shadow: 0 0 15px rgba(0, 212, 254, 0.5),
+              0 0 25px rgba(0, 212, 254, 0.3);
+}
+
+.neon-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.neon-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.neon-button:hover::before {
+  left: 100%;
+}
+
+.neon-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 212, 254, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.neon-card:hover::after {
+  opacity: 1;
+}
+
+/* Анимированный фон */
+.animated-bg {
+  background: linear-gradient(135deg, #000000 0%, #001b2a 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Пульсирующая анимация */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 254, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 212, 254, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 254, 0);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
