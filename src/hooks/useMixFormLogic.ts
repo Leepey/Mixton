@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useMixerContext } from '../context/MixerContext';
-import type { MixPool } from '../types/mixer';
+import type { MixPool } from '../features/mixer/types/mixer';
 
 interface MixFormLogicProps {
   initialPoolId?: string;

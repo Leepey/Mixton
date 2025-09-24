@@ -4,7 +4,7 @@ import { Grid, Typography, Paper, Box, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useTheme, alpha } from '@mui/material/styles';
 import { useMixerContext } from '../../../context/MixerContext';
-import MixForm from '../../../components/forms/MixForm';
+import MixForm from '../../mixer/components/MixForm';
 import type { Pool } from '../types/dashboard.types';
 
 interface PoolsModuleProps {

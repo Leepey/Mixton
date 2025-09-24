@@ -14,8 +14,8 @@ import {
   Button,
   Link,
 } from '@mui/material';
-import type { MixTransaction } from '../../types/mixer';
-import { formatTimestamp, formatAddress } from '../../utils/formatUtils';
+import type { MixTransaction } from '../../features/mixer/types/mixer';
+import { formatTimestamp, formatAddress } from '../../features/shared/utils/formatUtils';
 
 interface TransactionDetailsProps {
   open: boolean;

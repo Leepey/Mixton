@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import type { TransactionData } from '../types/dashboard.types';
 import { transformMixTransactions } from '../utils/transactionUtils';
-import { loadMixHistory } from '../../../services/storageService';
+import { loadMixHistory } from '../../shared/services/storageService';
 
 // Изменим тип входного параметра на MixTransaction[]
 export const useTransactionsHistory = (initialHistory: any[]) => {

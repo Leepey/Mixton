@@ -22,15 +22,15 @@ import {
   Info,
   CheckCircle
 } from '@mui/icons-material';
-import NeonCard from '../components/ui/cards/NeonCard';
-import MixPoolCard from '../components/ui/cards/MixPoolCard';
-import TransactionLoader from '../components/ui/loaders/TransactionLoader';
-import NeonText from '../components/ui/typography/NeonText';
-import MixForm from '../components/forms/MixForm';
-import QuickMixForm from '../components/forms/QuickMixForm';
+import NeonCard from '../features/shared/components/ui/cards/NeonCard';
+import MixPoolCard from '../features/shared/components/ui/cards/MixPoolCard';
+import TransactionLoader from '../features/shared/components/ui/loaders/TransactionLoader';
+import NeonText from '../features/shared/components/ui/typography/NeonText';
+import MixForm from '../features/mixer/components/MixForm';
+import QuickMixForm from '../features/mixer/components/QuickMixForm';
 import { useAuth } from '../context/AuthContext';
 import { useMixerContext } from '../context/MixerContext';
-import type { MixFormData } from '../types/mixer';
+import type { MixFormData } from '../features/mixer/types/mixer';
 
 const Home: React.FC = () => {
   const theme = useTheme();

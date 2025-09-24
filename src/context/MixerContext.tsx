@@ -1,8 +1,8 @@
 // src/context/MixerContext.tsx
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { useMixer } from '../hooks/useMixer';
-import type { MixTransaction, MixPool, PendingTransaction } from '../types/mixer';
-import type { PoolFeeRates, ContractLimits, PoolDelays, BasicStats, QueueStatus, QueueDetails } from '../types/ton';
+import { useMixer } from '../features/mixer/hooks/useMixer';
+import type { MixTransaction, MixPool, PendingTransaction } from '../features/mixer/types/mixer';
+import type { PoolFeeRates, ContractLimits, PoolDelays, BasicStats, QueueStatus, QueueDetails } from '../features/shared/types/ton';
 
 interface MixerContextType {
   // Состояния

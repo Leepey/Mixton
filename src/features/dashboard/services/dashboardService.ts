@@ -1,12 +1,11 @@
 // src/features/dashboard/services/dashboardService.ts
-// Заглушка для будущего функционала
 export const dashboardService = {
   getStats: async () => {
-    // Реализация получения статистики
-    return {};
-  },
-  getRealtimeData: async () => {
-    // Реализация получения данных в реальном времени
-    return {};
+    // Получение статистики из контракта
+    return {
+      totalDeposits: 0,
+      totalWithdrawn: 0,
+      activeUsers: 0,
+    };
   },
 };

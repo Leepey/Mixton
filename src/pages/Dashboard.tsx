@@ -17,15 +17,15 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useMixerContext } from '../context/MixerContext';
-import MixForm from '../components/forms/MixForm';
-import TransactionLoader from '../components/ui/loaders/TransactionLoader';
+import MixForm from '../features/mixer/components/MixForm';
+import TransactionLoader from '../features/shared/components/ui/loaders/TransactionLoader';
 import { 
   StatsModule, 
   PoolsModule, 
   TransactionsModule, 
   SettingsModule 
 } from '../features/dashboard';
-import type { MixFormData } from '../types/mixer';
+import type { MixFormData } from '../features/mixer/types/mixer';
 
 const Dashboard: React.FC = () => {
   const theme = useTheme();

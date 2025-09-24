@@ -2,7 +2,6 @@
 import React from 'react';
 import { useAdminAuth } from '@/features/admin/hooks/useAdminAuth';
 import { AdminPanelLayout } from '@/features/admin/components/AdminPanelLayout';
-import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 
 const AdminPanel: React.FC = () => {
   const { isAdmin, loading } = useAdminAuth();
@@ -35,11 +34,7 @@ const AdminPanel: React.FC = () => {
     );
   }
 
-  return (
-    <ProtectedRoute>
-      <AdminPanelLayout />
-    </ProtectedRoute>
-  );
+  return <AdminPanelLayout />;
 };
 
 export default AdminPanel;
