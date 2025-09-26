@@ -1,28 +1,50 @@
-// src/features/admin/index.ts
-// Components
-export { AdminPanelLayout } from './components/AdminPanelLayout';
-export { UserManagement } from './components/UserManagement';
-export { ContractSettingsComponent } from './components/ContractSettingsComponent';
-export { SecuritySettingsComponent } from './components/SecuritySettingsComponent';
-export { AnalyticsPanel } from './components/AnalyticsPanel';
+// features/admin/index.ts
 
-// Hooks
+export { AdminService } from './services/adminService';
+export { SecurityService } from './services/securityService';
 export { useAdminAuth } from './hooks/useAdminAuth';
 export { useContractManagement } from './hooks/useContractManagement';
 export { useUserManagement } from './hooks/useUserManagement';
+export { useAdminTabs } from './hooks/useAdminTabs';
 
-// Services
-export { adminService } from './services/adminService';
-export { securityService } from './services/securityService';
+// Компоненты
+export { AdminPanelLayout } from './components/AdminPanelLayout';
+export { AnalyticsPanel } from './components/AnalyticsPanel';
+export { ContractSettings } from './components/ContractSettings';
+export { ContractSettingsComponent } from './components/ContractSettingsComponent';
+export { SecuritySettingsComponent } from './components/SecuritySettingsComponent';
+export { UserManagement } from './components/UserManagement';
+export { TransactionTable } from './components/TransactionTable';
+export { AdminTransactionDetails } from './components/AdminTransactionDetails';
 
-// Types
-export type { AdminUser, ContractSettings, SecuritySettings, AnalyticsData } from './types/admin.types';
-
-// Utils
+// Утилиты
+export { getAdminTabs, formatAdminAddress, getTransactionStatusColor } from './utils/adminUtils';
 export { 
-  validateAdminAddress, 
-  formatAddress, 
-  calculatePoolUtilization,
-  validateContractSettings,
-  generateUserReport
-} from './utils/adminUtils';
+  getAdminTabs, 
+  getTabValueById, 
+  getTabIdByValue, 
+  isValidTabValue,
+  getTabIcon,
+  getTabDescription,
+  getAllTabValues,
+  getNextTab,
+  getPreviousTab
+} from './utils/adminTabsUtils';
+
+// Типы
+export type { 
+  AdminSettings, 
+  PoolInfo, 
+  FeeRates, 
+  Limits, 
+  Delays, 
+  Stats, 
+  Transaction,
+  AdminTabValue,
+  AdminTab,
+  AdminPanelConfig,
+  AdminStats,
+  PoolManagementData,
+  SecuritySettings,
+  ContractConfiguration
+} from './types/admin.types';

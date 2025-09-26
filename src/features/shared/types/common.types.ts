@@ -11,3 +11,13 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
 }
+export interface ErrorPageProps {
+  code?: number;
+  title?: string;
+  message?: string;
+  showHomeButton?: boolean;
+  customAction?: {
+    label: string;
+    onClick: () => void;
+  };
+}

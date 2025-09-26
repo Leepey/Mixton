@@ -1,4 +1,4 @@
-// src/components/forms/MixForm.tsx
+// src/mixer/components/MixForm.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,

@@ -1,59 +1,36 @@
-import { useState, useEffect } from 'react';
-import { adminService } from '../services/adminService';
-import type { ContractSettings } from '../types/admin.types';
-import { validateContractSettings } from '../utils/adminUtils';
+// features/admin/hooks/useContractManagement.ts
+import { useState } from 'react';
+import { useMixerContext } from '../../../context/MixerContext';
+import { AdminService } from '../services/adminService';
 
 export const useContractManagement = () => {
-  const [settings, setSettings] = useState<ContractSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { refreshContractData } = useMixerContext();
 
-  const fetchSettings = async () => {
+  const handleRefresh = async () => {
     setLoading(true);
     try {
-      const data = await adminService.getContractSettings();
-      setSettings(data);
-      setErrors([]);
+      await AdminService.refreshData();
+      await refreshContractData();
     } catch (error) {
-      console.error('Failed to fetch contract settings:', error);
+      console.error('Failed to refresh data:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateSettings = async (newSettings: ContractSettings) => {
-    const validationErrors = validateContractSettings(newSettings);
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors);
-      return false;
-    }
-
-    setUpdating(true);
+  const handleProcessQueue = async () => {
+    setLoading(true);
     try {
-      await adminService.updateContractSettings(newSettings);
-      setSettings(newSettings);
-      setErrors([]);
-      return true;
+      await AdminService.processQueue();
     } catch (error) {
-      console.error('Failed to update contract settings:', error);
-      setErrors(['Failed to update settings']);
-      return false;
+      console.error('Failed to process queue:', error);
+      throw error;
     } finally {
-      setUpdating(false);
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  return {
-    settings,
-    loading,
-    updating,
-    errors,
-    updateSettings,
-    refreshSettings: fetchSettings,
-  };
+  return { loading, handleRefresh, handleProcessQueue };
 };

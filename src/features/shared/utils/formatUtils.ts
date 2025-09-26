@@ -1,169 +1,372 @@
-// src/utils/formatUtils.ts
-// Форматирование адреса TON
-export const formatAddress = (address: string | null, length: number = 6): string => {
-  if (!address) return 'Not connected';
-  
-  if (address.length <= length * 2 + 3) {
-    return address;
+// features/shared/utils/formatUtils.ts
+
+/**
+ * Форматирует сумму TON с правильным количеством знаков после запятой
+ * @param amount - Сумма для форматирования
+ * @param decimals - Количество знаков после запятой (по умолчанию 2)
+ * @returns Отформатированная строка
+ */
+export const formatAmount = (amount: number, decimals: number = 2): string => {
+  if (typeof amount !== 'number' || isNaN(amount)) {
+    return '0.00';
   }
   
-  return `${address.slice(0, length)}...${address.slice(-length)}`;
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(amount);
 };
 
-// Форматирование баланса
-export const formatBalance = (balance: string, decimals: number = 2): string => {
-  const num = parseFloat(balance);
-  if (isNaN(num)) return '0';
-  
-  return num.toFixed(decimals);
-};
-
-// Форматирование временной метки
-export const formatTimestamp = (timestamp: number): string => {
-  return new Date(timestamp * 1000).toLocaleString();
-};
-
-// Форматирование суммы с разделителями
-export const formatAmount = (amount: number): string => {
-  return new Intl.NumberFormat('en-US').format(amount);
-};
-
-// Импортируем необходимые типы из TON SDK
-import { Address } from '@ton/core';
-
-// Нормализация адреса в user-friendly формат
-export const normalizeAddress = (address: string | null): string | null => {
-  if (!address) return null;
-  
-  try {
-    // Если адрес уже в user-friendly формате (без префикса), возвращаем как есть
-    if (!address.startsWith('0:')) {
-      return address;
-    }
-    
-    // Если адрес в raw формате (с префиксом "0:"), конвертируем в user-friendly
-    return Address.parse(address).toString();
-  } catch (error) {
-    console.error('Error normalizing address:', error);
-    return address;
+/**
+ * Форматирует время в формате "X time ago"
+ * @param timestamp - Временная метка в миллисекундах
+ * @returns Отформатированная строка
+ */
+export const formatTimeAgo = (timestamp: number): string => {
+  if (!timestamp || typeof timestamp !== 'number') {
+    return 'Never';
   }
-};
 
-// Конвертация адреса в raw формат
-export const toRawAddress = (address: string | null): string | null => {
-  if (!address) return null;
-  
-  try {
-    // Если адрес в raw формате (с префиксом "0:"), возвращаем как есть
-    if (address.startsWith('0:')) {
-      return address;
-    }
-    
-    // Если адрес в user-friendly формате, конвертируем в raw
-    return Address.parse(address).toRawString();
-  } catch (error) {
-    console.error('Error converting to raw address:', error);
-    return address;
-  }
-};
-
-// Проверка валидности адреса TON
-export const isValidTonAddress = (address: string): boolean => {
-  try {
-    Address.parse(address);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
-// Форматирование суммы TON с правильным количеством знаков после запятой
-export const formatTonAmount = (amount: string | number, decimals: number = 9): string => {
-  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (isNaN(num)) return '0';
-  
-  // Конвертируем из nanoTON в TON
-  const tonAmount = num / Math.pow(10, decimals);
-  
-  // Форматируем с учетом значимых цифр
-  if (tonAmount < 0.01) {
-    return tonAmount.toFixed(6);
-  } else if (tonAmount < 1) {
-    return tonAmount.toFixed(4);
-  } else {
-    return tonAmount.toFixed(2);
-  }
-};
-
-// Форматирование времени в относительный формат (например, "2 часа назад")
-export const formatRelativeTime = (timestamp: number): string => {
   const now = Date.now();
-  const date = new Date(timestamp * 1000);
-  const diffMs = now - date.getTime();
+  const diff = now - timestamp;
   
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
-  if (diffMinutes < 1) {
-    return 'just now';
-  } else if (diffMinutes < 60) {
-    return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
-  } else if (diffHours < 24) {
-    return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  } else {
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  // Если timestamp в будущем
+  if (diff < 0) {
+    return 'Just now';
   }
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  const weeks = Math.floor(diff / 604800000);
+  const months = Math.floor(diff / 2592000000);
+  const years = Math.floor(diff / 31536000000);
+
+  if (years > 0) {
+    return `${years} year${years > 1 ? 's' : ''} ago`;
+  }
+  
+  if (months > 0) {
+    return `${months} month${months > 1 ? 's' : ''} ago`;
+  }
+  
+  if (weeks > 0) {
+    return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+  }
+  
+  if (days > 0) {
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  }
+  
+  if (hours > 0) {
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  }
+  
+  if (minutes > 0) {
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  }
+  
+  if (seconds > 0) {
+    return `${seconds} second${seconds > 1 ? 's' : ''} ago`;
+  }
+  
+  return 'Just now';
 };
 
-// Форматирование хеша транзакции
-export const formatTxHash = (hash: string, length: number = 8): string => {
-  if (!hash) return '';
+/**
+ * Форматирует адрес (обрезает и добавляет ...)
+ * @param address - Адрес для форматирования
+ * @param startLength - Количество символов в начале (по умолчанию 6)
+ * @param endLength - Количество символов в конце (по умолчанию 4)
+ * @returns Отформатированный адрес
+ */
+export const formatAddress = (
+  address: string, 
+  startLength: number = 6, 
+  endLength: number = 4
+): string => {
+  if (!address) {
+    return '';
+  }
   
-  if (hash.length <= length * 2 + 3) {
+  if (address.length <= startLength + endLength) {
+    return address;
+  }
+  
+  return `${address.substring(0, startLength)}...${address.substring(address.length - endLength)}`;
+};
+
+/**
+ * Форматирует дату в локальном формате
+ * @param timestamp - Временная метка в миллисекундах
+ * @param options - Опции форматирования
+ * @returns Отформатированная дата
+ */
+export const formatDate = (
+  timestamp: number, 
+  options: Intl.DateTimeFormatOptions = {}
+): string => {
+  if (!timestamp || typeof timestamp !== 'number') {
+    return '';
+  }
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    ...options
+  };
+
+  return new Date(timestamp).toLocaleDateString(undefined, defaultOptions);
+};
+
+/**
+ * Форматирует время в локальном формате
+ * @param timestamp - Временная метка в миллисекундах
+ * @param options - Опции форматирования
+ * @returns Отформатированное время
+ */
+export const formatTime = (
+  timestamp: number, 
+  options: Intl.DateTimeFormatOptions = {}
+): string => {
+  if (!timestamp || typeof timestamp !== 'number') {
+    return '';
+  }
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    ...options
+  };
+
+  return new Date(timestamp).toLocaleTimeString(undefined, defaultOptions);
+};
+
+/**
+ * Форматирует дату и время в локальном формате
+ * @param timestamp - Временная метка в миллисекундах
+ * @param options - Опции форматирования
+ * @returns Отформатированная дата и время
+ */
+export const formatDateTime = (
+  timestamp: number, 
+  options: Intl.DateTimeFormatOptions = {}
+): string => {
+  if (!timestamp || typeof timestamp !== 'number') {
+    return '';
+  }
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    ...options
+  };
+
+  return new Date(timestamp).toLocaleString(undefined, defaultOptions);
+};
+
+/**
+ * Форматирует число с разделителями тысяч
+ * @param num - Число для форматирования
+ * @returns Отформатированная строка
+ */
+export const formatNumber = (num: number): string => {
+  if (typeof num !== 'number' || isNaN(num)) {
+    return '0';
+  }
+
+  return new Intl.NumberFormat('en-US').format(num);
+};
+
+/**
+ * Форматирует процент
+ * @param value - Значение от 0 до 1
+ * @param decimals - Количество знаков после запятой (по умолчанию 2)
+ * @returns Отформатированная строка с %
+ */
+export const formatPercent = (value: number, decimals: number = 2): string => {
+  if (typeof value !== 'number' || isNaN(value)) {
+    return '0%';
+  }
+
+  return `${(value * 100).toFixed(decimals)}%`;
+};
+
+/**
+ * Форматирует размер файла
+ * @param bytes - Размер в байтах
+ * @returns Отформатированная строка
+ */
+export const formatFileSize = (bytes: number): string => {
+  if (typeof bytes !== 'number' || isNaN(bytes) || bytes < 0) {
+    return '0 Bytes';
+  }
+
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes === 0) return '0 Bytes';
+  
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const size = bytes / Math.pow(1024, i);
+  
+  return `${size.toFixed(i > 1 ? 2 : 0)} ${sizes[i]}`;
+};
+
+/**
+ * Форматирует длительность в человекочитаемом формате
+ * @param milliseconds - Длительность в миллисекундах
+ * @returns Отформатированная строка
+ */
+export const formatDuration = (milliseconds: number): string => {
+  if (typeof milliseconds !== 'number' || isNaN(milliseconds) || milliseconds < 0) {
+    return '0s';
+  }
+
+  const seconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) {
+    return `${days}d ${hours % 24}h`;
+  }
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes % 60}m`;
+  }
+  
+  if (minutes > 0) {
+    return `${minutes}m ${seconds % 60}s`;
+  }
+  
+  return `${seconds}s`;
+};
+
+/**
+ * Форматирует хеш (обрезает и добавляет ...)
+ * @param hash - Хеш для форматирования
+ * @param length - Количество символов в начале и конце (по умолчанию 6)
+ * @returns Отформатированный хеш
+ */
+export const formatHash = (hash: string, length: number = 6): string => {
+  if (!hash) {
+    return '';
+  }
+  
+  if (hash.length <= length * 2) {
     return hash;
   }
   
-  return `${hash.slice(0, length)}...${hash.slice(-length)}`;
+  return `${hash.substring(0, length)}...${hash.substring(hash.length - length)}`;
 };
 
-// Конвертация nanoTON в TON
-export const nanoToTon = (nanoAmount: string | number): number => {
-  const amount = typeof nanoAmount === 'string' ? parseFloat(nanoAmount) : nanoAmount;
-  return amount / 1000000000; // 1 TON = 10^9 nanoTON
-};
-
-// Конвертация TON в nanoTON
-export const tonToNano = (tonAmount: string | number): number => {
-  const amount = typeof tonAmount === 'string' ? parseFloat(tonAmount) : tonAmount;
-  return amount * 1000000000; // 1 TON = 10^9 nanoTON
-};
-
-// Форматирование задержки в человекочитаемом формате
-export const formatDelay = (delaySeconds: number): string => {
-  if (delaySeconds < 3600) {
-    return `${delaySeconds} second${delaySeconds !== 1 ? 's' : ''}`;
-  } else if (delaySeconds < 86400) {
-    const hours = Math.floor(delaySeconds / 3600);
-    return `${hours} hour${hours !== 1 ? 's' : ''}`;
-  } else {
-    const days = Math.floor(delaySeconds / 86400);
-    return `${days} day${days !== 1 ? 's' : ''}`;
+/**
+ * Форматирует номер блока
+ * @param blockNumber - Номер блока
+ * @returns Отформатированная строка
+ */
+export const formatBlockNumber = (blockNumber: number | string): string => {
+  const num = typeof blockNumber === 'string' ? parseInt(blockNumber, 10) : blockNumber;
+  
+  if (isNaN(num)) {
+    return '#0';
   }
+  
+  return `#${formatNumber(num)}`;
 };
 
-// Форматирование комиссии в процентах
+/**
+ * Форматирует статус транзакции
+ * @param status - Статус транзакции
+ * @returns Отформатированная строка
+ */
+export const formatTransactionStatus = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    'completed': 'Completed',
+    'pending': 'Pending',
+    'failed': 'Failed',
+    'processing': 'Processing',
+    'cancelled': 'Cancelled'
+  };
+  
+  return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+/**
+ * Форматирует имя пула
+ * @param poolId - ID пула
+ * @returns Отформатированное имя пула
+ */
+export const formatPoolName = (poolId: string): string => {
+  const poolMap: Record<string, string> = {
+    'basic': 'Basic Pool',
+    'standard': 'Standard Pool',
+    'premium': 'Premium Pool'
+  };
+  
+  return poolMap[poolId] || poolId.charAt(0).toUpperCase() + poolId.slice(1);
+};
+
+/**
+ * Форматирует комиссию
+ * @param fee - Комиссия в виде числа (0.03 = 3%)
+ * @returns Отформатированная строка
+ */
 export const formatFee = (fee: number): string => {
+  if (typeof fee !== 'number' || isNaN(fee)) {
+    return '0%';
+  }
+  
   return `${(fee * 100).toFixed(2)}%`;
 };
 
-// Обрезание строки с добавлением многоточия
-export const truncateString = (str: string, maxLength: number): string => {
-  if (str.length <= maxLength) return str;
-  return `${str.slice(0, maxLength - 3)}...`;
+/**
+ * Форматирует баланс с сокращением больших чисел
+ * @param balance - Баланс
+ * @returns Отформатированная строка
+ */
+export const formatBalance = (balance: number): string => {
+  if (typeof balance !== 'number' || isNaN(balance)) {
+    return '0 TON';
+  }
+
+  if (balance >= 1000000) {
+    return `${(balance / 1000000).toFixed(2)}M TON`;
+  }
+  
+  if (balance >= 1000) {
+    return `${(balance / 1000).toFixed(2)}K TON`;
+  }
+  
+  return `${formatAmount(balance)} TON`;
 };
 
-// Генерация случайного ID
-export const generateId = (): string => {
-  return Math.random().toString(36).substr(2, 9);
+/**
+ * Форматирует время задержки
+ * @param delay - Задержка в секундах
+ * @returns Отформатированная строка
+ */
+export const formatDelay = (delay: number): string => {
+  if (typeof delay !== 'number' || isNaN(delay) || delay < 0) {
+    return '0s';
+  }
+
+  const hours = Math.floor(delay / 3600);
+  const minutes = Math.floor((delay % 3600) / 60);
+  const seconds = delay % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+  
+  return `${seconds}s`;
 };

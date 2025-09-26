@@ -1,4 +1,4 @@
-// src/hooks/useTonConnect.ts
+// src/geatures/shared/hooks/useTonConnect.ts
 import { useState, useEffect, useMemo } from 'react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { type Sender, Address } from '@ton/core';

@@ -1,177 +1,96 @@
+// features/shared/components/ui/cards/PoolCard.tsx
 import React from 'react';
 import { 
-  Box, 
+  Paper, 
   Typography, 
-  Chip, 
+  Box, 
   useTheme,
   alpha,
-  Skeleton
+  type SxProps
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { SwapHoriz, Lock, Schedule } from '@mui/icons-material';
 
-interface Pool {
-  id: string;
-  name: string;
-  fee: number;
-  minAmount: number;
-  maxAmount: number;
-  delay: string;
-  capacity: number;
+export interface PoolCardProps {
+  title: string;
+  subtitle?: string;
+  value: string | number;
+  icon?: React.ReactNode;
+  color?: string;
+  sx?: SxProps;
 }
 
-interface PoolCardProps {
-  pool: Pool;
-  onClick: () => void;
-  isSelected: boolean;
-}
-
-const PoolCard: React.FC<PoolCardProps> = ({ pool, onClick, isSelected }) => {
+/**
+ * Простая карточка для отображения информации о пуле
+ */
+export const PoolCard: React.FC<PoolCardProps> = ({
+  title,
+  subtitle,
+  value,
+  icon,
+  color = '#00BCD4',
+  sx = {}
+}) => {
   const theme = useTheme();
-  
-  // Цвета неоновой сине-голубой темы
-  const neonBlue = '#00BCD4';
-  const neonCyan = '#18FFFF';
-  const deepBlue = '#0a192f';
-  
+
   return (
     <motion.div
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      whileHover={{ 
+        y: -5,
+        transition: { duration: 0.2 }
+      }}
     >
-      <Box
-        onClick={onClick}
+      <Paper 
+        elevation={0}
         sx={{
-          p: 2.5,
-          borderRadius: '14px',
-          background: isSelected
-            ? `linear-gradient(135deg, ${alpha(neonBlue, 0.15)}, ${alpha(deepBlue, 0.8)})`
-            : alpha(deepBlue, 0.6),
-          border: `1px solid ${isSelected ? neonBlue : alpha(neonBlue, 0.2)}`,
-          boxShadow: isSelected 
-            ? `0 0 20px ${alpha(neonBlue, 0.4)}` 
-            : 'none',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          position: 'relative',
-          overflow: 'hidden',
+          p: 3,
+          borderRadius: '12px',
+          background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.grey[900], 0.6)})`,
+          backdropFilter: 'blur(10px)',
+          border: `1px solid ${alpha(color, 0.2)}`,
+          transition: 'transform 0.3s, box-shadow 0.3s',
           '&:hover': {
-            borderColor: neonCyan,
-            boxShadow: `0 0 25px ${alpha(neonCyan, 0.3)}`
-          }
+            transform: 'translateY(-5px)',
+            boxShadow: `0 10px 30px ${alpha(color, 0.2)}`,
+          },
+          ...sx
         }}
       >
-        {/* Индикатор выбора */}
-        {isSelected && (
-          <Box sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            width: 10,
-            height: 10,
-            borderRadius: '50%',
-            background: neonBlue,
-            boxShadow: `0 0 10px ${neonBlue}`
-          }} />
-        )}
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-          <SwapHoriz sx={{ 
-            fontSize: 24, 
-            mr: 1.5, 
-            color: isSelected ? neonCyan : neonBlue 
-          }} />
-          <Typography variant="h6" sx={{ 
-            fontWeight: 600,
-            color: isSelected ? neonCyan : theme.palette.text.primary
-          }}>
-            {pool.name}
-          </Typography>
-        </Box>
-        
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
-          <Chip
-            icon={<Lock sx={{ fontSize: 16 }} />}
-            label={`${pool.fee}% fee`}
-            size="small"
-            sx={{
-              background: alpha(neonBlue, 0.1),
-              color: neonBlue,
-              border: `1px solid ${alpha(neonBlue, 0.3)}`,
-              '& .MuiChip-icon': { color: neonBlue }
-            }}
-          />
-          <Chip
-            icon={<Schedule sx={{ fontSize: 16 }} />}
-            label={pool.delay}
-            size="small"
-            sx={{
-              background: alpha(neonCyan, 0.1),
-              color: neonCyan,
-              border: `1px solid ${alpha(neonCyan, 0.3)}`,
-              '& .MuiChip-icon': { color: neonCyan }
-            }}
-          />
-        </Box>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-            Min: {pool.minAmount} TON
-          </Typography>
-          <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
-            Max: {pool.maxAmount} TON
-          </Typography>
-        </Box>
-        
-        {/* Индикатор заполненности пула */}
-        <Box sx={{ mt: 1.5 }}>
-          <Box sx={{ 
-            width: '100%', 
-            height: 6, 
-            background: alpha(theme.palette.grey[700], 0.3),
-            borderRadius: 3,
-            overflow: 'hidden'
-          }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          {icon && (
             <Box sx={{ 
-              width: `${pool.capacity}%`, 
-              height: '100%',
-              background: `linear-gradient(90deg, ${neonBlue}, ${neonCyan})`,
-              boxShadow: `0 0 8px ${alpha(neonBlue, 0.5)}`
-            }} />
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 40,
+              height: 40,
+              borderRadius: '10px',
+              background: alpha(color, 0.1),
+              color: color
+            }}>
+              {icon}
+            </Box>
+          )}
+          <Box>
+            <Typography variant="body2" color="text.secondary">
+              {title}
+            </Typography>
+            {subtitle && (
+              <Typography variant="caption" color="text.secondary">
+                {subtitle}
+              </Typography>
+            )}
           </Box>
-          <Typography variant="caption" sx={{ 
-            mt: 0.5, 
-            display: 'block',
-            textAlign: 'right',
-            color: theme.palette.text.secondary
-          }}>
-            {pool.capacity}% filled
-          </Typography>
         </Box>
-      </Box>
+        
+        <Typography variant="h5" sx={{ fontWeight: 600, color }}>
+          {value}
+        </Typography>
+      </Paper>
     </motion.div>
   );
 };
-
-// Skeleton для состояния загрузки
-export const PoolCardSkeleton: React.FC = () => (
-  <Box sx={{
-    p: 2.5,
-    borderRadius: '14px',
-    background: alpha('#0a192f', 0.6),
-    border: '1px solid rgba(0, 188, 212, 0.2)'
-  }}>
-    <Skeleton variant="text" width="60%" height={28} sx={{ mb: 2 }} />
-    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-      <Skeleton variant="rounded" width={80} height={24} />
-      <Skeleton variant="rounded" width={100} height={24} />
-    </Box>
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-      <Skeleton variant="text" width="30%" />
-      <Skeleton variant="text" width="30%" />
-    </Box>
-    <Skeleton variant="rounded" width="100%" height={6} sx={{ borderRadius: 3 }} />
-  </Box>
-);
 
 export default PoolCard;

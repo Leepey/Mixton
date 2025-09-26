@@ -1,49 +1,40 @@
-import { useState, useEffect } from 'react';
-import { adminService } from '../services/adminService';
-import type { AdminUser } from '../types/admin.types';
+// features/admin/hooks/useUserManagement.ts
+import { useState } from 'react';
+import { AdminSettings } from '../types/admin.types';
+import { AdminService } from '../services/adminService';
 
 export const useUserManagement = () => {
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [adminSettings, setAdminSettings] = useState<AdminSettings>({
+    feeRate: 0.003,
+    minAmount: 0.01,
+    maxAmount: 100,
+    autoProcess: true,
+    processInterval: 3600
+  });
 
-  const fetchUsers = async () => {
+  const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setAdminSettings(prev => ({
+      ...prev,
+      [name]: name.includes('Amount') || name.includes('Rate') || name.includes('Interval') 
+        ? Number(value) 
+        : value
+    }));
+  };
+
+  const handleSaveSettings = async () => {
     setLoading(true);
     try {
-      const data = await adminService.getUsers();
-      setUsers(data);
+      await AdminService.updateAdminSettings(adminSettings);
+      return true;
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      console.error('Failed to save settings:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateUserStatus = async (userId: string, status: AdminUser['status']) => {
-    setUpdating(true);
-    try {
-      await adminService.updateUserStatus(userId, status);
-      setUsers(prev => 
-        prev.map(user => 
-          user.id === userId ? { ...user, status } : user
-        )
-      );
-    } catch (error) {
-      console.error('Failed to update user status:', error);
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  return {
-    users,
-    loading,
-    updating,
-    updateUserStatus,
-    refreshUsers: fetchUsers,
-  };
+  return { adminSettings, loading, handleSettingsChange, handleSaveSettings };
 };

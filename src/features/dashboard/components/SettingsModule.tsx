@@ -1,10 +1,11 @@
-// src/features/dashboard/components/SettingsModule.tsx
+// features/dashboard/components/SettingsModule.tsx
 import React from 'react';
 import { Typography, Paper, Box } from '@mui/material';
 import { motion } from 'framer-motion';
-import { useTheme, alpha } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material';
 
-const SettingsModule: React.FC = () => {
+export const SettingsModule: React.FC = () => {
   const theme = useTheme();
 
   return (
@@ -61,5 +62,3 @@ const SettingsModule: React.FC = () => {
     </motion.div>
   );
 };
-
-export default SettingsModule;

@@ -18,10 +18,11 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useTonConnect } from '../../hooks/useTonConnect';
-import { useAuth } from '../../context/AuthContext';
-import { formatAddress, normalizeAddress } from '../../utils/formatUtils';
-
+import { useTonConnect } from '../../../hooks/useTonConnect';
+import { useAuthContext } from '../../../features/auth/components/AuthProvider';
+import { formatAddress, normalizeAddress } from '../../features/shared/utils/formatUtils';
+import { MixButton } from '../../features/shared/components/ui/buttons/MixButton';
+import { NeonText } from '../../features/shared/components/ui/typography/NeonText';
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
@@ -29,7 +30,7 @@ const Navbar: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   const { connected, address, balance, isLoading, connectWallet, disconnectWallet, refreshBalance } = useTonConnect();
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuthContext();
   
   // Отладочная информация
   useEffect(() => {
@@ -37,10 +38,9 @@ const Navbar: React.FC = () => {
     console.log('- Raw address:', address);
     console.log('- Normalized address:', normalizeAddress(address));
     console.log('- User:', user);
-    console.log('- Is authenticated:', isAuthenticated);
     console.log('- User is admin:', user?.isAdmin);
     console.log('- Address:', address);
-  }, [user, isAuthenticated, address]);
+  }, [user, address]);
   
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -103,24 +103,19 @@ const Navbar: React.FC = () => {
             sx={{
               height: { xs: '32px', md: '40px' },
               mr: { xs: 1, md: 1.5 },
-              
             }}
           />
-          <Typography 
+          <NeonText 
             variant="h6" 
             component="div" 
             sx={{ 
               fontWeight: 800,
               letterSpacing: '.1rem',
-              background: 'linear-gradient(45deg, #00BCD4 30%, #2196F3 90%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: `0 0 10px ${alpha('#00BCD4', 0.5)}`,
               fontSize: { xs: '1.2rem', md: '1.4rem' }
             }}
           >
             MixTon
-          </Typography>
+          </NeonText>
         </motion.div>
         
         {/* Навигационные ссылки для десктопа */}
@@ -171,7 +166,7 @@ const Navbar: React.FC = () => {
           })}
           
           {/* Ссылка на админ-панель (только для администраторов) */}
-          {isAuthenticated && user?.isAdmin && (
+          {user?.isAdmin && (
             <motion.div
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
@@ -224,7 +219,7 @@ const Navbar: React.FC = () => {
               px: 2,
               py: 1,
               borderRadius: 2,
-              background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.1)}, ${alpha(theme.palette.grey[900], 0.2)})`,
+              background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.1)}, ${alpha(theme.palette.grey[900}, 0.2)})`,
               backdropFilter: 'blur(10px)',
               border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`
             }}>
@@ -239,16 +234,16 @@ const Navbar: React.FC = () => {
                 {formatAddress(address)}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography 
+                <NeonText 
                   variant="body2" 
                   sx={{ 
                     fontWeight: 'bold',
-                    color: theme.palette.primary.main,
-                    fontSize: '0.95rem'
+                    fontSize: '0.95rem',
+                    color: theme.palette.primary.main
                   }}
                 >
                   {balance} TON
-                </Typography>
+                </NeonText>
                 <IconButton 
                   size="small" 
                   onClick={handleRefreshBalance}
@@ -279,42 +274,25 @@ const Navbar: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Button 
-            variant={connected ? "outlined" : "contained"}
-            color={connected ? "error" : "primary"}
-            onClick={connected ? disconnectWallet : connectWallet}
-            disabled={isLoading}
-            sx={{
-              borderRadius: 2,
-              px: 3,
-              py: 1,
-              fontWeight: 600,
-              fontSize: '0.9rem',
-              boxShadow: connected 
-                ? `0 0 10px ${alpha(theme.palette.error.main, 0.3)}`
-                : `0 0 10px ${alpha(theme.palette.primary.main, 0.3)}`,
-              ...(connected && {
-                borderColor: 'error.main',
-                color: 'error.main',
-                '&:hover': {
-                  borderColor: 'error.dark',
-                  backgroundColor: alpha(theme.palette.error.main, 0.1),
-                  color: 'error.dark'
-                }
-              }),
-              ...(!connected && {
-                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                '&:hover': {
-                  background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
-                }
-              })
-            }}
-          >
-            {isLoading ? 
-              <CircularProgress size={16} color="inherit" sx={{ mr: 1 }} /> 
-              : (connected ? 'Disconnect' : 'Connect Wallet')
-            }
-          </Button>
+          {connected ? (
+            <MixButton
+              variant="outlined"
+              color="error"
+              onClick={disconnectWallet}
+              disabled={isLoading}
+              startIcon={isLoading ? <CircularProgress size={16} /> : undefined}
+            >
+              {isLoading ? 'Disconnecting...' : 'Disconnect'}
+            </MixButton>
+          ) : (
+            <MixButton
+              onClick={connectWallet}
+              disabled={isLoading}
+              startIcon={isLoading ? <CircularProgress size={16} /> : undefined}
+            >
+              {isLoading ? 'Connecting...' : 'Connect Wallet'}
+            </MixButton>
+          )}
         </motion.div>
         
         {/* Мобильное меню */}
@@ -380,7 +358,7 @@ const Navbar: React.FC = () => {
           })}
           
           {/* Ссылка на админ-панель в мобильном меню (только для администраторов) */}
-          {isAuthenticated && user?.isAdmin && (
+          {user?.isAdmin && (
             <MenuItem 
               onClick={() => navigateTo('/admin')}
               sx={{

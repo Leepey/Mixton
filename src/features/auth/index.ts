@@ -1,35 +1,31 @@
-// src/features/auth/index.ts
-export * from './components';
-export * from './hooks';
-export * from './services';
-export * from './types';
-export * from './utils';
+// features/auth/index.ts
 
-// src/features/dashboard/index.ts
-export * from './components';
-export * from './hooks';
-export * from './services';
-export * from './types';
-export * from './utils';
+// Компоненты
+export { AuthProvider, useAuthContext } from './components/AuthProvider';
 
-// src/features/mixer/index.ts
-export * from './components';
-export * from './hooks';
-export * from './services';
-export * from './types';
-export * from './utils';
+// Хуки
+export { useAuth } from './hooks/useAuth';
+export { useWalletAuth } from './hooks/useWalletAuth';
 
-// src/features/admin/index.ts
-export * from './components';
-export * from './hooks';
-export * from './services';
-export * from './types';
-export * from './utils';
+// Сервисы
+export { AuthService } from './services/authService';
+export { WalletAuthService } from './services/walletAuthService';
 
-// src/features/shared/index.ts
-export * from './components';
-export * from './hooks';
-export * from './services';
-export * from './types';
-export * from './utils';
-export * from './constants';
+// Типы
+export type { 
+  AuthUser,
+  LoginCredentials,
+  RegisterCredentials,
+  ForgotPasswordData,
+  ResetPasswordData,
+  AuthResponse,
+  AuthError,
+  UserRole,
+  UserPermission,
+  UserSession,
+  UserProfile,
+  SecuritySettings,
+  UserActivity,
+  UserData,
+  UserByAddressResponse
+} from './types/auth.types';

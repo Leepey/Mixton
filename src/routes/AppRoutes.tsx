@@ -1,35 +1,20 @@
 // src/routes/AppRoutes.tsx
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Home from '../pages/Home';
-import Dashboard from '../pages/Dashboard';
-import About from '../pages/About';
-import AdminPanel from '../pages/AdminPanel';
-import ProtectedRoute from './ProtectedRoutes';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { PublicRoutes } from './PublicRoutes';
+import { ProtectedRoutes } from './ProtectedRoutes';
+import { useAuthContext } from '../features/auth';
 
-const AppRoutes: React.FC = () => {
+export const AppRoutes: React.FC = () => {
+  const { user } = useAuthContext();
+
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
+      <Route path="/auth/*" element={<PublicRoutes />} />
       <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute adminOnly={true}>
-            <AdminPanel />
-          </ProtectedRoute>
-        } 
+        path="/*" 
+        element={user.connected ? <ProtectedRoutes /> : <Navigate to="/auth" replace />} 
       />
     </Routes>
   );
 };
-
-export default AppRoutes;

@@ -1,23 +1,18 @@
-// src/features/dashboard/components/PoolsModule.tsx
-import React, { useState } from 'react';
-import { Grid, Typography, Paper, Box, Button } from '@mui/material';
+// features/dashboard/components/PoolsModule.tsx
+import React from 'react';
+import { Grid, Typography, Paper, Button } from '@mui/material';
 import { motion } from 'framer-motion';
-import { useTheme, alpha } from '@mui/material/styles';
-import { useMixerContext } from '../../../context/MixerContext';
-import MixForm from '../../mixer/components/MixForm';
-import type { Pool } from '../types/dashboard.types';
+import { useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material';
+import { usePoolsData } from '../hooks/usePoolsData';
 
-interface PoolsModuleProps {
-  onPoolSelect: (poolId: string) => void;
-}
-
-const PoolsModule: React.FC<PoolsModuleProps> = ({ onPoolSelect }) => {
+export const PoolsModule: React.FC<{ onPoolSelect: (poolId: string) => void }> = ({ onPoolSelect }) => {
   const theme = useTheme();
-  const { availablePools } = useMixerContext();
+  const { pools, loading } = usePoolsData();
 
-  const handlePoolClick = (poolId: string) => {
-    onPoolSelect(poolId);
-  };
+  if (loading) {
+    return <Typography>Loading pools...</Typography>;
+  }
 
   return (
     <motion.div
@@ -30,7 +25,7 @@ const PoolsModule: React.FC<PoolsModuleProps> = ({ onPoolSelect }) => {
       </Typography>
       
       <Grid container spacing={3}>
-        {availablePools.map((pool: Pool) => (
+        {pools.map((pool) => (
           <Grid size={{ xs: 12, sm: 6, md: 4 }} key={pool.id}>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -52,7 +47,7 @@ const PoolsModule: React.FC<PoolsModuleProps> = ({ onPoolSelect }) => {
                     boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.3)}`,
                   }
                 }}
-                onClick={() => handlePoolClick(pool.id)}
+                onClick={() => onPoolSelect(pool.id)}
               >
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                   {pool.name}
@@ -87,5 +82,3 @@ const PoolsModule: React.FC<PoolsModuleProps> = ({ onPoolSelect }) => {
     </motion.div>
   );
 };
-
-export default PoolsModule;

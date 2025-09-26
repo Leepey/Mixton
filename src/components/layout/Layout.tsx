@@ -2,8 +2,8 @@
 import React, { type ReactNode } from 'react';
 import { Outlet } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import Navbar from '../../features/shared/components/layout/Navbar';
-import Footer from '../../features/shared/components/layout/Footer';
+import Navbar from '../../features/shared/components/ui/layout/Navbar';
+import Footer from '../../features/shared/components/ui/layout/Footer';
 
 interface LayoutProps {
   children: ReactNode;

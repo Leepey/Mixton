@@ -1,17 +1,28 @@
-// src/pages/About.tsx
+// pages/About.tsx
 import React from 'react';
-import { Container, Typography } from '@mui/material';
+import { 
+  HeroSection,
+  StatsSection,
+  MissionSection,
+  TeamSection,
+  TimelineSection,
+  TechnologySection,
+  FAQSection,
+  ContactSection
+} from '../features/about';
 
 const About: React.FC = () => {
   return (
-    <Container maxWidth="md">
-      <Typography variant="h2" gutterBottom>
-        About TON Mixer
-      </Typography>
-      <Typography variant="body1">
-        Information about our service.
-      </Typography>
-    </Container>
+    <>
+      <HeroSection />
+      <StatsSection />
+      <MissionSection />
+      <TeamSection />
+      <TimelineSection />
+      <TechnologySection />
+      <FAQSection />
+      <ContactSection />
+    </>
   );
 };
 

@@ -1,29 +1,19 @@
-// src/features/dashboard/components/TransactionsModule.tsx
+// features/dashboard/components/TransactionsModule.tsx
 import React from 'react';
 import { Grid, Typography, Paper, Box } from '@mui/material';
 import { motion } from 'framer-motion';
+import { useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material';
 import { History } from '@mui/icons-material';
-import { useTheme, alpha } from '@mui/material/styles';
-import { useMixerContext } from '../../../context/MixerContext';
-import type { MixTransaction } from '../types/dashboard.types'
-import {
-  formatTransactionDate,
-  formatTransactionStatus, // Добавлен импорт
-  getStatusColor,
-  formatAmountWithCurrency,
-  calculateTransactionStats,
-  sortTransactionsByDate
-} from '../utils/transactionUtils';
+import { useTransactionHistory } from '../hooks/useTransactionHistory';
 
-const TransactionsModule: React.FC = () => {
+export const TransactionsModule: React.FC = () => {
   const theme = useTheme();
-  const { mixHistory } = useMixerContext();
+  const { transactions, loading } = useTransactionHistory();
 
-  // Сортируем транзакции по дате (новые сначала)
-  const sortedTransactions = sortTransactionsByDate(mixHistory as MixTransaction[]);
-  
-  // Рассчитываем статистику
-  const stats = calculateTransactionStats(mixHistory as MixTransaction[]);
+  if (loading) {
+    return <Typography>Loading transactions...</Typography>;
+  }
 
   return (
     <motion.div
@@ -31,33 +21,13 @@ const TransactionsModule: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Статистика транзакций */}
-      <Box sx={{ mb: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Total: {stats.totalTransactions}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Completed: {stats.completedTransactions} ({stats.completionRate.toFixed(1)}%)
-          </Typography>
-        </Box>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Total Amount: {formatAmountWithCurrency(stats.totalAmount)}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Average: {formatAmountWithCurrency(stats.averageAmount)}
-          </Typography>
-        </Box>
-      </Box>
-
       <Typography variant="h4" sx={{ mb: 4, fontWeight: 600 }}>
         Transaction History
       </Typography>
       
-      {sortedTransactions.length > 0 ? (
+      {transactions.length > 0 ? (
         <Grid container spacing={3}>
-          {sortedTransactions.map((tx: MixTransaction) => (
+          {transactions.map((tx) => (
             <Grid size={{ xs: 12 }} key={tx.id}>
               <Paper 
                 elevation={0}
@@ -76,7 +46,7 @@ const TransactionsModule: React.FC = () => {
                   mb: 2
                 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    {formatAmountWithCurrency(tx.amount)}
+                    {tx.amount} TON
                   </Typography>
                   <Typography 
                     variant="body2" 
@@ -84,17 +54,24 @@ const TransactionsModule: React.FC = () => {
                       px: 2, 
                       py: 0.5, 
                       borderRadius: '12px',
-                      bgcolor: alpha(getStatusColor(tx.status), 0.2),
-                      color: getStatusColor(tx.status),
-                      fontWeight: 600,
+                      bgcolor: tx.status === 'completed' 
+                        ? alpha(theme.palette.success.main, 0.2) 
+                        : tx.status === 'pending' 
+                          ? alpha(theme.palette.warning.main, 0.2)
+                          : alpha(theme.palette.error.main, 0.2),
+                      color: tx.status === 'completed' 
+                        ? theme.palette.success.main 
+                        : tx.status === 'pending' 
+                          ? theme.palette.warning.main
+                          : theme.palette.error.main,
                     }}
                   >
-                    {formatTransactionStatus(tx.status)} {/* Теперь функция доступна */}
+                    {tx.status}
                   </Typography>
                 </Box>
                 
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  {formatTransactionDate(tx.timestamp)}
+                  {new Date(tx.timestamp).toLocaleString()}
                 </Typography>
               </Paper>
             </Grid>
@@ -123,5 +100,3 @@ const TransactionsModule: React.FC = () => {
     </motion.div>
   );
 };
-
-export default TransactionsModule;

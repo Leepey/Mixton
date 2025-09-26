@@ -1,11 +1,14 @@
 // src/main.tsx
-// Импортируем полифиллы в самом начале
 import './polyfills';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
+import { ErrorBoundary } from './features/shared/components/ErrorBoundary';
+import { AuthProvider } from './features/auth/components/AuthProvider';
+import { MixerProvider } from './context/MixerContext';
 import App from './App';
 import theme from './styles/theme';
 import './styles/global.css';
@@ -16,28 +19,33 @@ if (!rootElement) {
   throw new Error('Root element not found');
 }
 
-console.log('🚀 Starting app...');
-
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <TonConnectUIProvider 
-        manifestUrl={import.meta.env.VITE_TONCONNECT_MANIFEST_URL}
-        actionsConfiguration={{
-          twaReturnUrl: 'https://t.me/TONMixerBot',
-          modals: ['error'],
-          notifications: ['before', 'success', 'error']
-        }}
-        uiPreferences={{ 
-          theme: 'SYSTEM',
-          borderRadius: 's'
-        }}
-        language="en"
-        // Удаляем объект connector с неподдерживаемыми свойствами
-      >
-        <App />
-      </TonConnectUIProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <TonConnectUIProvider 
+            manifestUrl={import.meta.env.VITE_TONCONNECT_MANIFEST_URL}
+            actionsConfiguration={{
+              twaReturnUrl: 'https://t.me/TONMixerBot',
+              modals: ['error'],
+              notifications: ['before', 'success', 'error']
+            }}
+            uiPreferences={{ 
+              theme: 'SYSTEM',
+              borderRadius: 's'
+            }}
+            language="en"
+          >
+            <AuthProvider>
+              <MixerProvider>
+                <App />
+              </MixerProvider>
+            </AuthProvider>
+          </TonConnectUIProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );

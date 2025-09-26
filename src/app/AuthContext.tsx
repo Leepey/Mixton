@@ -1,4 +1,4 @@
-// src/context/AuthContext.tsx
+// src/app/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useTonConnect } from '../features/shared/hooks/useTonConnect';
 

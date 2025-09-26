@@ -1,38 +1,28 @@
-// src/features/dashboard/hooks/useTransactionsHistory.ts
-import { useState, useCallback } from 'react';
-import type { TransactionData } from '../types/dashboard.types';
-import { transformMixTransactions } from '../utils/transactionUtils';
-import { loadMixHistory } from '../../shared/services/storageService';
+// features/dashboard/hooks/useTransactionHistory.ts
+import { useState, useEffect } from 'react';
+import { Transaction } from '../types/dashboard.types';
+import { DashboardService } from '../services/dashboardService';
 
-// Изменим тип входного параметра на MixTransaction[]
-export const useTransactionsHistory = (initialHistory: any[]) => {
-  // Преобразуем входные данные в наш тип TransactionData
-  const [transactions, setTransactions] = useState<TransactionData[]>(
-    transformMixTransactions(initialHistory)
-  );
-  
-  const refreshHistory = useCallback(() => {
+export const useTransactionHistory = () => {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTransactions = async () => {
     try {
-      const savedHistory = loadMixHistory();
-      // Преобразуем загруженные данные в наш тип
-      setTransactions(transformMixTransactions(savedHistory));
-    } catch (error) {
-      console.error('Failed to refresh history:', error);
+      setLoading(true);
+      const data = await DashboardService.getTransactionHistory();
+      setTransactions(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch transactions');
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const clearHistory = useCallback(() => {
-    setTransactions([]);
-    try {
-      localStorage.removeItem('ton_mixer_history');
-    } catch (error) {
-      console.error('Failed to clear mix history from localStorage:', error);
-    }
-  }, []);
-
-  return {
-    transactions,
-    refreshHistory,
-    clearHistory,
   };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  return { transactions, loading, error, refetch: fetchTransactions };
 };
