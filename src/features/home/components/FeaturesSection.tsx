@@ -5,7 +5,6 @@ import { Grid, Typography, Box, Container } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useHomeData } from '../hooks/useHomeData';
 import { FeatureCard } from './FeatureCard';
-import { Feature } from '../types/home.types';
 
 interface FeaturesSectionProps {
   variant?: 'default' | 'compact' | 'detailed';
