@@ -6,6 +6,23 @@ TON Mixer - это децентрализованный сервис для об
 
 # 🏗️ Обновленная схема проекта Mixton v2.3.1 (Feature-Based Architecture)
 
+<<<<<<< HEAD
+=======
+## 📊 Общая структура проекта
+
+```
+
+### 🔄 Жизненный цикл микширования
+
+```
+1. Пользователь открывает MixForm (mixer/components/MixForm.tsx)
+2. Хук useMixing (mixer/hooks/useMixing.ts) управляет состоянием
+3. Сервис mixerService (mixer/services/mixerService.ts) взаимодействует с контрактом
+4. Mixton Contract (features/shared/services/contract/Mixton.ts) обрабатывает транзакцию
+5. TransactionStatus (mixer/components/TransactionStatus.tsx) показывает прогресс
+6. Dashboard обновляется через useDashboardStats (dashboard/hooks/useDashboardStats.ts)
+```
+>>>>>>> 42b78cfc72eb0c6e9104fd1a47593fb81da7a11e
 
 ## 🎯 Ключевые преимущества архитектуры
 
