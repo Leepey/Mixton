@@ -39,7 +39,7 @@ export { TonService } from './services/tonService';
 
 // Types
 export type { ErrorPageProps } from './types/common.types';
-export type { TonConnectConfig } from './types/ton.d';
+export type { TonConnectConfig } from './types/ton';
 
 // Utils
 export {
