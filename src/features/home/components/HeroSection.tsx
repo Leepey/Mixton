@@ -14,8 +14,8 @@ import {
 import { motion } from 'framer-motion';
 import { Info, Security, Speed, VerifiedUser } from '@mui/icons-material';
 import QuickMixForm from '../../mixer/components/QuickMixForm';
-import { useAuth } from '../../../app/AuthContext';
-import { useMixerContext } from '../../../context/MixerContext';
+import { useAuth } from '../../auth/context/AuthContext';
+import { useMixerContext } from '../../shared/context/MixerContext';
 import type { MixPool } from '../../mixer/types/mixer';
 
 interface HeroSectionProps {

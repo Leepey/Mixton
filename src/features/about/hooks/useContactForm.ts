@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { AboutService } from '../services/aboutService';
 import type { ContactInfo } from '../types/about.types';
-import { validateEmail, isEmpty, capitalize } from '../utils/aboutUtils';
+import { validateEmail, isEmpty } from '../utils/aboutUtils';
 
 interface ContactFormData {
   name: string;

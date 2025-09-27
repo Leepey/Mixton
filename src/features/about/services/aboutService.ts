@@ -1,11 +1,11 @@
 // src/features/about/services/aboutService.ts
-import type { 
-  TeamMember, 
-  TimelineEvent, 
-  Feature, 
-  FAQItem, 
+import type {
+  TeamMember,
+  TimelineEvent,
+  Feature,
+  FAQItem,
   AboutStats,
-  ContactInfo 
+  ContactInfo
 } from '../types/about.types';
 
 export class AboutService {
@@ -73,28 +73,32 @@ export class AboutService {
           date: 'Q1 2024',
           title: 'Project Inception',
           description: 'Started development of Mixton with focus on TON privacy',
-          icon: '🚀'
+          icon: '🚀',
+          type: 'milestone'
         },
         {
           id: '2',
           date: 'Q2 2024',
           title: 'Alpha Release',
           description: 'Launched alpha version with basic mixing functionality',
-          icon: '🔬'
+          icon: '🔬',
+          type: 'release'
         },
         {
           id: '3',
           date: 'Q3 2024',
           title: 'Security Audit',
           description: 'Completed comprehensive security audit by third-party experts',
-          icon: '🔒'
+          icon: '🔒',
+          type: 'achievement'
         },
         {
           id: '4',
           date: 'Q4 2024',
           title: 'Public Launch',
           description: 'Official launch with advanced features and multi-pool support',
-          icon: '🎉'
+          icon: '🎉',
+          type: 'milestone'
         }
       ];
     } catch (error) {
@@ -118,7 +122,9 @@ export class AboutService {
             'Random delay distribution',
             'Cross-pool transactions',
             'Zero-knowledge proofs integration'
-          ]
+          ],
+          category: 'privacy',
+          isFeatured: true
         },
         {
           id: '2',
@@ -130,19 +136,23 @@ export class AboutService {
             'Standard Pool: Balanced privacy',
             'Premium Pool: Maximum anonymity',
             'Custom pool configurations'
-          ]
+          ],
+          category: 'usability',
+          isFeatured: true
         },
         {
           id: '3',
           title: 'Smart Contract Security',
-          description: 'Audited and secure smart contracts',
+          description: 'Audited and secure smart contracts with advanced security features',
           icon: '🛡️',
           details: [
             'Formal verification',
             'Multi-signature controls',
             'Emergency pause functionality',
             'Regular security updates'
-          ]
+          ],
+          category: 'security',
+          isFeatured: true
         }
       ];
     } catch (error) {
@@ -160,25 +170,37 @@ export class AboutService {
           id: '1',
           question: 'What is TON mixing?',
           answer: 'TON mixing is a privacy-enhancing technique that obscures the origin of transactions by combining them with others, making it difficult to trace the flow of funds.',
-          category: 'General'
+          category: 'general',
+          tags: ['mixing', 'privacy', 'TON'],
+          isPopular: true,
+          lastUpdated: '2024-01-15'
         },
         {
           id: '2',
           question: 'Is Mixton safe to use?',
-          answer: 'Yes, Mixton has undergone rigorous security audits and uses industry-standard encryption and privacy techniques. Our smart contracts are open-source and verifiable.',
-          category: 'Security'
+          answer: 'Yes, Mixton has undergone rigorous security audits and uses industry-standard encryption and privacy techniques.',
+          category: 'security',
+          tags: ['safety', 'security', 'audit'],
+          isPopular: true,
+          lastUpdated: '2024-01-10'
         },
         {
           id: '3',
           question: 'How long does mixing take?',
-          answer: 'Mixing time depends on the selected pool. Basic pool takes 1-2 hours, Standard pool 2-4 hours, and Premium pool 4-8 hours for maximum privacy.',
-          category: 'Usage'
+          answer: 'Mixing time depends on the selected pool. Basic pool takes 1-2 hours, Standard pool 2-4 hours, and Premium pool 4-8 hours.',
+          category: 'technical',
+          tags: ['timing', 'pools', 'duration'],
+          isPopular: false,
+          lastUpdated: '2024-01-12'
         },
         {
           id: '4',
-          question: 'What are the fees?',
-          answer: 'Fees vary by pool: Basic (0.1%), Standard (0.3%), Premium (0.5%). These fees help maintain the service and provide liquidity.',
-          category: 'Fees'
+          question: 'What are the fees for using Mixton?',
+          answer: 'Mixton charges a small service fee ranging from 0.5% to 2% depending on the selected pool and privacy level.',
+          category: 'fees',
+          tags: ['fees', 'pricing', 'cost'],
+          isPopular: false,
+          lastUpdated: '2024-01-08'
         }
       ];
     } catch (error) {
@@ -192,18 +214,52 @@ export class AboutService {
     try {
       // Mock данные для разработки
       return {
-        totalUsers: 15420,
-        totalTransactions: 89340,
-        totalVolume: 2560000,
-        uptime: 99.9
+        totalMixed: '2,500,000+ TON',
+        usersCount: '15,000+',
+        poolsCount: 3,
+        uptime: 99.9,
+        securityAudits: 3,
+        lastUpdated: '2024-01-15',
+        bounceRate: 0.25,
+        topSections: [
+          {
+            section: 'mixing',
+            views: 4500,
+            percentage: 45
+          },
+          {
+            section: 'security',
+            views: 3200,
+            percentage: 32
+          },
+          {
+            section: 'faq',
+            views: 2300,
+            percentage: 23
+          }
+        ],
+        contactFormSubmissions: 156,
+        faqViews: {
+          'general': 1200,
+          'security': 980,
+          'technical': 750,
+          'fees': 620,
+          'privacy': 540
+        }
       };
     } catch (error) {
       console.error('Error fetching stats:', error);
       return {
-        totalUsers: 0,
-        totalTransactions: 0,
-        totalVolume: 0,
-        uptime: 0
+        totalMixed: '0 TON',
+        usersCount: '0',
+        poolsCount: 0,
+        uptime: 0,
+        securityAudits: 0,
+        lastUpdated: '',
+        bounceRate: 0,
+        topSections: [],
+        contactFormSubmissions: 0,
+        faqViews: {}
       };
     }
   }
@@ -216,7 +272,12 @@ export class AboutService {
         email: 'support@mixton.ton',
         telegram: 'mixton_support',
         discord: 'https://discord.gg/mixton',
-        github: 'https://github.com/Leepey/Mixton'
+        github: 'https://github.com/Leepey/Mixton',
+        supportHours: {
+          timezone: 'UTC',
+          hours: '24/7'
+        },
+        responseTime: 'Within 24 hours'
       };
     } catch (error) {
       console.error('Error fetching contact info:', error);
@@ -224,7 +285,12 @@ export class AboutService {
         email: '',
         telegram: '',
         discord: '',
-        github: ''
+        github: '',
+        supportHours: {
+          timezone: '',
+          hours: ''
+        },
+        responseTime: ''
       };
     }
   }
@@ -264,16 +330,27 @@ export class AboutService {
         features: [],
         faq: [],
         stats: {
-          totalUsers: 0,
-          totalTransactions: 0,
-          totalVolume: 0,
-          uptime: 0
+          totalMixed: '0 TON',
+          usersCount: '0',
+          poolsCount: 0,
+          uptime: 0,
+          securityAudits: 0,
+          lastUpdated: '',
+          bounceRate: 0,
+          topSections: [],
+          contactFormSubmissions: 0,
+          faqViews: {}
         },
         contact: {
           email: '',
           telegram: '',
           discord: '',
-          github: ''
+          github: '',
+          supportHours: {
+            timezone: '',
+            hours: ''
+          },
+          responseTime: ''
         }
       };
     }

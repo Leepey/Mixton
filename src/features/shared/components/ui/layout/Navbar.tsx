@@ -22,7 +22,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTonConnect } from '../../../hooks/useTonConnect';
-import { useAuth } from '../../../../../App/AuthContext';
+import { useAuth } from '../../../../auth/context/AuthContext';
 import { formatAddress, normalizeAddress } from '../../../utils/formatUtils';
 import { MixButton } from '../buttons/MixButton';
 import { NeonText } from '../typography/NeonText';
@@ -32,18 +32,9 @@ const Navbar: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
-  const { connected, address, balance, isLoading, connectWallet, disconnectWallet, refreshBalance } = useTonConnect();
-  const { user } = useAuth();
-
-  // Отладочная информация
-  useEffect(() => {
-    console.log('Navbar Debug:');
-    console.log('- Raw address:', address);
-    console.log('- Normalized address:', normalizeAddress(address));
-    console.log('- User:', user);
-    console.log('- User is admin:', user?.isAdmin);
-    console.log('- Address:', address);
-  }, [user, address]);
+  
+  const { connected, wallet, address, connectWallet, disconnectWallet } = useTonConnect();
+  const { user, logout } = useAuth();
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -53,126 +44,110 @@ const Navbar: React.FC = () => {
     setAnchorEl(null);
   };
 
-  const navigateTo = (path: string) => {
-    navigate(path);
-    handleClose();
-  };
-
-  const handleRefreshBalance = async () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await refreshBalance();
+      // Add any refresh logic here
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error('Refresh failed:', error);
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/about', label: 'About' },
-  ];
+  const handleDisconnect = async () => {
+    try {
+      await disconnectWallet();
+      logout();
+      handleClose();
+    } catch (error) {
+      console.error('Disconnect failed:', error);
+    }
+  };
+
+  const handleConnect = async () => {
+    try {
+      await connectWallet();
+    } catch (error) {
+      console.error('Connect failed:', error);
+    }
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    handleClose();
+  };
+
+  // Check if user is authenticated based on user object
+  const isAuthenticated = !!user;
+
+  const formattedAddress = address ? formatAddress(normalizeAddress(address)) : '';
 
   return (
-    <AppBar
-      position="fixed"
-      sx={{
-        background: `linear-gradient(to right, ${alpha(theme.palette.background.paper, 0.1)}, ${alpha(theme.palette.grey[900], 0.2)})`,
-        backdropFilter: 'blur(10px)',
-        borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+    <AppBar 
+      position="static" 
+      sx={{ 
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
       }}
     >
       <Toolbar>
-        {/* Мобильное меню */}
-        <IconButton
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          sx={{ mr: 2, display: { sm: 'none' } }}
-          onClick={handleMenu}
+        {/* Logo and Title */}
+        <Box 
+          component={motion.div}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}
         >
-          <MenuIcon />
-        </IconButton>
-
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-          sx={{ display: { sm: 'none' } }}
-        >
-          {navLinks.map((link) => (
-            <MenuItem key={link.path} onClick={() => navigateTo(link.path)}>
-              {link.label}
-            </MenuItem>
-          ))}
-          {user?.isAdmin && (
-            <MenuItem onClick={() => navigateTo('/admin')}>
-              <AdminPanelSettingsIcon sx={{ mr: 1 }} />
-              Admin Panel
-            </MenuItem>
-          )}
-        </Menu>
-
-        {/* Логотип с названием */}
-        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-          <motion.div
-            initial={{ rotate: -10 }}
-            animate={{ rotate: 0 }}
-            transition={{ duration: 0.5, type: 'spring' }}
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              fontWeight: 'bold',
+              background: 'linear-gradient(45deg, #00ffff, #ff00ff)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              cursor: 'pointer'
+            }}
+            onClick={() => navigate('/')}
           >
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{ 
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                mr: 3
-              }}
-              onClick={() => navigate('/')}
-            >
-              <NeonText text="MixTon" color="primary" />
-            </Typography>
-          </motion.div>
+            Mixton
+          </Typography>
         </Box>
 
-        {/* Навигационные ссылки для десктопа */}
-        <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2 }}>
-          {navLinks.map((link) => (
-            <Button
-              key={link.path}
-              color="inherit"
-              onClick={() => navigateTo(link.path)}
+        {/* Navigation Items */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* Refresh Button */}
+          <Tooltip title="Refresh Data">
+            <IconButton
+              onClick={handleRefresh}
+              disabled={isRefreshing}
               sx={{
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: '2px',
-                  background: theme.palette.primary.main,
-                  transform: 'scaleX(0)',
-                  transition: 'transform 0.3s ease'
-                },
-                '&:hover::after': {
-                  transform: 'scaleX(1)'
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: alpha('#ffffff', 0.1)
                 }
               }}
             >
-              {link.label}
-            </Button>
-          ))}
-          
-          {user?.isAdmin && (
+              {isRefreshing ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <RefreshIcon />
+              )}
+            </IconButton>
+          </Tooltip>
+
+          {/* Admin Panel (if authenticated) */}
+          {isAuthenticated && user?.role === 'admin' && (
             <Tooltip title="Admin Panel">
               <IconButton
-                color="inherit"
-                onClick={() => navigateTo('/admin')}
+                onClick={() => navigate('/admin')}
                 sx={{
+                  color: 'white',
                   '&:hover': {
-                    background: alpha(theme.palette.primary.main, 0.1)
+                    backgroundColor: alpha('#ffffff', 0.1)
                   }
                 }}
               >
@@ -180,72 +155,67 @@ const Navbar: React.FC = () => {
               </IconButton>
             </Tooltip>
           )}
-        </Box>
 
-        {/* Кнопки подключения кошелька и баланса */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {isLoading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : connected && address ? (
-            <>
-              <Tooltip title="Refresh Balance">
-                <IconButton
-                  color="inherit"
-                  onClick={handleRefreshBalance}
-                  disabled={isRefreshing}
+          {/* Wallet Connection */}
+          {connected && address ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Tooltip title={address}>
+                <MixButton
+                  variant="outlined"
+                  onClick={handleMenu}
                   sx={{
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    color: 'white',
                     '&:hover': {
-                      background: alpha(theme.palette.primary.main, 0.1)
+                      borderColor: 'rgba(255, 255, 255, 0.5)',
+                      backgroundColor: alpha('#ffffff', 0.1)
                     }
                   }}
                 >
-                  {isRefreshing ? (
-                    <CircularProgress size={20} color="inherit" />
-                  ) : (
-                    <RefreshIcon />
-                  )}
-                </IconButton>
+                  <AccountBalanceWalletIcon sx={{ mr: 1 }} />
+                  {formattedAddress}
+                </MixButton>
               </Tooltip>
-              
-              <Box
+
+              {/* User Menu */}
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 1,
-                  borderRadius: 2,
-                  background: alpha(theme.palette.background.paper, 0.1),
-                  border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`
+                  mt: '45px',
+                  '& .MuiPaper': {
+                    backgroundColor: '#1a1a2e',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '8px'
+                  }
                 }}
               >
-                <AccountBalanceWalletIcon fontSize="small" />
-                <Typography variant="body2">
-                  {balance ? `${parseFloat(balance).toFixed(2)} TON` : '0 TON'}
-                </Typography>
-              </Box>
-
-              <Badge
-                variant="dot"
-                color="success"
-                overlap="circular"
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              >
-                <MixButton
-                  onClick={disconnectWallet}
-                  variant="outlined"
-                  size="small"
-                >
-                  {formatAddress(address)}
-                </MixButton>
-              </Badge>
-            </>
+                <MenuItem onClick={() => handleNavigate('/dashboard')}>
+                  <Typography>Dashboard</Typography>
+                </MenuItem>
+                {isAuthenticated && (
+                  <MenuItem onClick={() => handleNavigate('/profile')}>
+                    <Typography>Profile</Typography>
+                  </MenuItem>
+                )}
+                <MenuItem onClick={handleDisconnect}>
+                  <Typography color="error">Disconnect</Typography>
+                </MenuItem>
+              </Menu>
+            </Box>
           ) : (
             <MixButton
-              onClick={connectWallet}
               variant="contained"
-              startIcon={<AccountBalanceWalletIcon />}
+              onClick={handleConnect}
+              sx={{
+                background: 'linear-gradient(45deg, #00ffff, #ff00ff)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #00cccc, #ff00ff)'
+                }
+              }}
             >
+              <AccountBalanceWalletIcon sx={{ mr: 1 }} />
               Connect Wallet
             </MixButton>
           )}

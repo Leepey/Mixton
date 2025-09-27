@@ -6,11 +6,9 @@ import {
   AccountBalance,
   Shuffle,
   HourglassEmpty,
-  TrendingUp,
   People,
   Schedule,
   CheckCircle,
-  Warning,
   Error as ErrorIcon
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';

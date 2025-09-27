@@ -10,7 +10,7 @@ interface UseStatsReturn {
   refetch: () => Promise<void>;
   formattedStats: {
     users: string;
-    transactions: string;
+    mixed: string; // Changed from transactions to mixed
     volume: string;
     uptime: string;
   };
@@ -21,7 +21,7 @@ export const useStats = (): UseStatsReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchStats = async () => {
+  const fetchStats = async (): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
@@ -50,10 +50,19 @@ export const useStats = (): UseStatsReturn => {
     return num.toLocaleString();
   };
 
+  // Helper function to extract number from string like "2,500,000+ TON"
+  const extractNumberFromString = (str: string): number => {
+    const matches = str.match(/[\d,]+/);
+    if (matches) {
+      return parseInt(matches[0].replace(/,/g, ''), 10);
+    }
+    return 0;
+  };
+
   const formattedStats = {
-    users: stats ? formatNumber(stats.totalUsers) : '0',
-    transactions: stats ? formatNumber(stats.totalTransactions) : '0',
-    volume: stats ? formatNumber(stats.totalVolume) : '0',
+    users: stats ? formatNumber(extractNumberFromString(stats.usersCount)) : '0',
+    mixed: stats ? stats.totalMixed : '0', // Changed from transactions to mixed
+    volume: stats ? stats.totalMixed : '0', // Using totalMixed as volume since it represents the total amount mixed
     uptime: stats ? `${stats.uptime}%` : '0%'
   };
 

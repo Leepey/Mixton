@@ -1,15 +1,16 @@
 // src/features/about/components/StatsSection.tsx
 import React from 'react';
-import { Grid, Typography, Box, Container } from '@mui/material'; // Добавляем Container в импорт
+import { Typography, Box, Container, Card, CardContent, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
-import { 
-  People, 
-  Shuffle, 
-  AttachMoney, 
-  Verified 
+import {
+  People,
+  Shuffle,
+  AttachMoney,
+  Verified,
+  Security,
+  Pool
 } from '@mui/icons-material';
 import { useAboutData } from '../hooks/useAboutData';
-import { StatCard } from './StatCard';
 
 interface StatsData {
   title: string;
@@ -20,41 +21,52 @@ interface StatsData {
   description: string;
 }
 
+// Вспомогательная функция для преобразования строковых значений в числа
+const parseNumericValue = (value: string | number): number => {
+  if (typeof value === 'number') {
+    return value;
+  }
+  
+  // Извлекаем число из строки типа "15,000+" или "2,500,000+ TON"
+  const numericString = value.replace(/[^\d]/g, '');
+  return parseInt(numericString, 10) || 0;
+};
+
 export const StatsSection: React.FC = () => {
   const { stats, loading } = useAboutData();
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
+      <Box sx={{ py: 8, textAlign: 'center' }}>
         <Typography>Loading statistics...</Typography>
-      </Container>
+      </Box>
     );
   }
 
   const statsData: StatsData[] = stats ? [
     {
+      title: 'Total Mixed',
+      value: parseNumericValue(stats.totalMixed),
+      unit: 'TON',
+      icon: <Shuffle />,
+      color: '#00BCD4',
+      description: 'Total TON mixed through platform'
+    },
+    {
       title: 'Active Users',
-      value: stats.totalUsers,
+      value: parseNumericValue(stats.usersCount),
       unit: '',
       icon: <People />,
-      color: '#00BCD4',
-      description: 'Trusting Mixton'
-    },
-    {
-      title: 'Total Mixes',
-      value: stats.totalTransactions,
-      unit: '',
-      icon: <Shuffle />,
       color: '#4CAF50',
-      description: 'Transactions processed'
+      description: 'Trusting Mixton with their privacy'
     },
     {
-      title: 'Total Volume',
-      value: stats.totalVolume,
-      unit: 'TON',
-      icon: <AttachMoney />,
+      title: 'Available Pools',
+      value: stats.poolsCount,
+      unit: '',
+      icon: <Pool />,
       color: '#FFC107',
-      description: 'Value mixed'
+      description: 'Privacy options available'
     },
     {
       title: 'Uptime',
@@ -63,73 +75,130 @@ export const StatsSection: React.FC = () => {
       icon: <Verified />,
       color: '#9C27B0',
       description: 'Service reliability'
+    },
+    {
+      title: 'Security Audits',
+      value: stats.securityAudits,
+      unit: '',
+      icon: <Security />,
+      color: '#F44336',
+      description: 'Completed security audits'
     }
   ] : [];
 
-  return (
-    <Box 
-      component="section"
-      sx={{ 
-        py: 8,
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-        position: 'relative',
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238BC34A' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          opacity: 0.3
+  // Компонент StatCard встроенный, так как оригинальный файл не найден
+  const StatCard: React.FC<{
+    title: string;
+    value: number;
+    unit: string;
+    icon: React.ReactNode;
+    color: string;
+    description: string;
+  }> = ({ title, value, unit, icon, color, description }) => (
+    <Card
+      sx={{
+        height: '100%',
+        textAlign: 'center',
+        transition: 'transform 0.2s',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: 4
         }
       }}
     >
-      <Container maxWidth="lg">
-        <Box textAlign="center" mb={6}>
-          <Typography 
-            variant="h3" 
-            component={motion.h2}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            gutterBottom 
-            fontWeight="bold"
-            sx={{ 
-              color: 'white',
-              mb: 2
+      <CardContent sx={{ p: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            mb: 2
+          }}
+        >
+          <Box
+            sx={{
+              width: 60,
+              height: 60,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: `${color}20`,
+              color: color
             }}
           >
-            By the Numbers
-          </Typography>
-          
-          <Typography 
-            variant="h6" 
-            component={motion.p}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            sx={{ 
-              color: 'rgba(255, 255, 255, 0.7)',
-              maxWidth: '600px',
-              mx: 'auto'
-            }}
-          >
-            Our platform's performance metrics and achievements speak for themselves
-          </Typography>
+            {icon}
+          </Box>
         </Box>
+        
+        <Typography
+          variant="h4"
+          component="div"
+          sx={{
+            fontWeight: 'bold',
+            color: color,
+            mb: 1
+          }}
+        >
+          {value.toLocaleString()}{unit}
+        </Typography>
+        
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            fontWeight: 600,
+            mb: 1,
+            color: 'text.primary'
+          }}
+        >
+          {title}
+        </Typography>
+        
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ fontSize: '0.875rem' }}
+        >
+          {description}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
 
-        <Grid container spacing={4}>
+  return (
+    <Container sx={{ py: 8 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Typography
+          variant="h2"
+          component="h2"
+          align="center"
+          gutterBottom
+          sx={{ fontWeight: 'bold', mb: 2 }}
+        >
+          By the Numbers
+        </Typography>
+        
+        <Typography
+          variant="h6"
+          component="p"
+          align="center"
+          color="text.secondary"
+          sx={{ mb: 6, maxWidth: 600, mx: 'auto' }}
+        >
+          Our platform's performance metrics and achievements speak for themselves
+        </Typography>
+
+        <Grid container spacing={4} justifyContent="center" sx={{ maxWidth: 1200, mx: 'auto' }}>
           {statsData.map((stat, index) => (
-            <Grid 
-              size={{ xs: 12, sm: 6, md: 3 }} 
-              key={stat.title}
-            >
+            <Grid size={{ xs: 12, sm: 12, md: 4, lg: 2.4 }} key={index}>
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
               >
                 <StatCard
                   title={stat.title}
@@ -145,13 +214,13 @@ export const StatsSection: React.FC = () => {
         </Grid>
 
         {statsData.length === 0 && (
-          <Box textAlign="center" py={8}>
-            <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
               No statistics available at the moment
             </Typography>
           </Box>
         )}
-      </Container>
-    </Box>
+      </motion.div>
+    </Container>
   );
 };

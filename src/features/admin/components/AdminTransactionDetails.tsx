@@ -9,7 +9,6 @@ import {
   Typography, 
   Box, 
   Chip,
-  Divider,
   Paper,
   Grid,
   IconButton,
@@ -27,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import type { Transaction } from '../types/admin.types';
 import { getTransactionStatusColor } from '../utils/adminUtils';
-import { formatAmount, formatTimeAgo, formatAddress } from '../../shared/utils/formatUtils';
+import { formatAmount, formatTimeAgo } from '../../shared/utils/formatUtils';
 
 interface AdminTransactionDetailsProps {
   open: boolean;

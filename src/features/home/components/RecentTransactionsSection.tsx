@@ -4,7 +4,7 @@ import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, Ta
 import { motion } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
 import { alpha } from '@mui/material';
-import { useMixerContext } from '../../../context/MixerContext';
+import { useMixerContext } from '../../shared/context/MixerContext';
 
 export const RecentTransactionsSection: React.FC = () => {
   const theme = useTheme();

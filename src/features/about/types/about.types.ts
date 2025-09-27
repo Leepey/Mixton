@@ -133,15 +133,23 @@ export interface ContactInfo {
 
 // Типы для статистики
 export interface AboutStats {
-  totalUsers: number;
-  totalTransactions: number;
-  totalVolume: number;
+  // Project statistics
+  totalMixed: string;
+  usersCount: string;
+  poolsCount: number;
   uptime: number;
-  averageProcessingTime: number;
-  successRate: number;
-  activePools: number;
-  supportedCurrencies: string[];
+  securityAudits: number;
   lastUpdated: string;
+  
+  // Analytics statistics
+  bounceRate: number;
+  topSections: Array<{
+    section: string;
+    views: number;
+    percentage: number;
+  }>;
+  contactFormSubmissions: number;
+  faqViews: Record<string, number>;
 }
 
 // Типы для данных страницы "О нас"
