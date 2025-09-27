@@ -1,6 +1,6 @@
 // features/about/hooks/useFAQ.ts
 import { useState } from 'react';
-import { FAQItem } from '../types/about.types';
+import type { FAQItem } from '../types/about.types';
 
 export const useFAQ = (faqItems: FAQItem[]) => {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());

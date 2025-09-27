@@ -1,5 +1,13 @@
-// features/admin/utils/adminTabsUtils.ts
+// src/features/admin/utils/adminTabsUtils.ts
 import type { AdminTab, AdminTabValue } from '../types/admin.types';
+import React from 'react';
+
+// Импортируем иконки напрямую
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SettingsIcon from '@mui/icons-material/Settings';
+import PoolIcon from '@mui/icons-material/Pool';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import HelpIcon from '@mui/icons-material/Help';
 
 /**
  * Получает все доступные вкладки административной панели
@@ -9,25 +17,25 @@ export const getAdminTabs = (): AdminTab[] => [
   {
     id: 0,
     name: 'Overview',
-    icon: <Dashboard />,
+    icon: React.createElement(DashboardIcon),
     description: 'Main dashboard and statistics'
   },
   {
     id: 1,
     name: 'Settings',
-    icon: <Settings />,
+    icon: React.createElement(SettingsIcon),
     description: 'Contract and system settings'
   },
   {
     id: 2,
     name: 'Pools',
-    icon: <Group />,
+    icon: React.createElement(PoolIcon),
     description: 'Manage mixing pools'
   },
   {
     id: 3,
     name: 'Transactions',
-    icon: <History />,
+    icon: React.createElement(ReceiptLongIcon),
     description: 'View transaction history'
   }
 ];
@@ -39,14 +47,10 @@ export const getAdminTabs = (): AdminTab[] => [
  */
 export const getTabValueById = (id: number): AdminTabValue => {
   switch (id) {
-    case 0:
-      return 'overview';
-    case 1:
-      return 'settings';
-    case 2:
-      return 'pools';
-    case 3:
-      return 'transactions';
+    case 0: return 'overview';
+    case 1: return 'settings';
+    case 2: return 'pools';
+    case 3: return 'transactions';
     default:
       console.warn(`Unknown tab id: ${id}, returning 'overview'`);
       return 'overview';
@@ -60,14 +64,10 @@ export const getTabValueById = (id: number): AdminTabValue => {
  */
 export const getTabIdByValue = (value: AdminTabValue): number => {
   switch (value) {
-    case 'overview':
-      return 0;
-    case 'settings':
-      return 1;
-    case 'pools':
-      return 2;
-    case 'transactions':
-      return 3;
+    case 'overview': return 0;
+    case 'settings': return 1;
+    case 'pools': return 2;
+    case 'transactions': return 3;
     default:
       console.warn(`Unknown tab value: ${value}, returning 0`);
       return 0;
@@ -90,16 +90,11 @@ export const isValidTabValue = (value: string): value is AdminTabValue => {
  */
 export const getTabIcon = (value: AdminTabValue): React.ReactNode => {
   switch (value) {
-    case 'overview':
-      return <Dashboard />;
-    case 'settings':
-      return <Settings />;
-    case 'pools':
-      return <Group />;
-    case 'transactions':
-      return <History />;
-    default:
-      return <Dashboard />;
+    case 'overview': return React.createElement(DashboardIcon);
+    case 'settings': return React.createElement(SettingsIcon);
+    case 'pools': return React.createElement(PoolIcon);
+    case 'transactions': return React.createElement(ReceiptLongIcon);
+    default: return React.createElement(HelpIcon);
   }
 };
 
@@ -109,23 +104,13 @@ export const getTabIcon = (value: AdminTabValue): React.ReactNode => {
  * @returns Описание вкладки
  */
 export const getTabDescription = (value: AdminTabValue): string => {
-  switch (value) {
-    case 'overview':
-      return 'Main dashboard and statistics';
-    case 'settings':
-      return 'Contract and system settings';
-    case 'pools':
-      return 'Manage mixing pools';
-    case 'transactions':
-      return 'View transaction history';
-    default:
-      return 'Admin panel';
-  }
+  const tab = getAdminTabs().find(t => getTabValueById(t.id) === value);
+  return tab?.description || 'No description available';
 };
 
 /**
- * Получает все возможные значения AdminTabValue
- * @returns Массив всех возможных значений
+ * Получает все возможные значения вкладок
+ * @returns Массив значений AdminTabValue
  */
 export const getAllTabValues = (): AdminTabValue[] => {
   return ['overview', 'settings', 'pools', 'transactions'];
@@ -156,67 +141,47 @@ export const getPreviousTab = (currentValue: AdminTabValue): AdminTabValue => {
 };
 
 /**
- * Получает вкладку по индексу
- * @param index - Индекс вкладки
- * @returns Объект вкладки или undefined
- */
-export const getTabByIndex = (index: number): AdminTab | undefined => {
-  const tabs = getAdminTabs();
-  return tabs.find(tab => tab.id === index);
-};
-
-/**
- * Получает вкладку по значению
+ * Получает вкладку по её значению
  * @param value - Значение AdminTabValue
  * @returns Объект вкладки или undefined
  */
 export const getTabByValue = (value: AdminTabValue): AdminTab | undefined => {
-  const tabs = getAdminTabs();
-  const id = getTabIdByValue(value);
-  return tabs.find(tab => tab.id === id);
+  return getAdminTabs().find(tab => getTabValueById(tab.id) === value);
 };
 
 /**
- * Проверяет существование вкладки по ID
+ * Получает вкладку по её ID
  * @param id - ID вкладки
- * @returns true если вкладка существует
+ * @returns Объект вкладки или undefined
  */
-export const tabExists = (id: number): boolean => {
-  const tabs = getAdminTabs();
-  return tabs.some(tab => tab.id === id);
+export const getTabById = (id: number): AdminTab | undefined => {
+  return getAdminTabs().find(tab => tab.id === id);
 };
 
 /**
- * Проверяет существование вкладки по значению
- * @param value - Значение AdminTabValue
- * @returns true если вкладка существует
+ * Проверяет, является ли вкладка активной
+ * @param currentTab - Текущая вкладка
+ * @param tabToCheck - Проверяемая вкладка
+ * @returns true если вкладки совпадают
  */
-export const tabValueExists = (value: string): boolean => {
-  return isValidTabValue(value);
+export const isTabActive = (currentTab: AdminTabValue, tabToCheck: AdminTabValue): boolean => {
+  return currentTab === tabToCheck;
 };
 
 /**
- * Получает количество вкладок
- * @returns Количество доступных вкладок
+ * Получает CSS класс для активной вкладки
+ * @param isActive - Флаг активности
+ * @returns CSS класс
  */
-export const getTabCount = (): number => {
-  return getAdminTabs().length;
+export const getActiveTabClass = (isActive: boolean): string => {
+  return isActive ? 'active-tab' : 'inactive-tab';
 };
 
 /**
- * Получает первую вкладку
- * @returns Первая вкладка
+ * Получает цвет для вкладки в зависимости от её статуса
+ * @param isActive - Флаг активности
+ * @returns Цвет в формате Material-UI
  */
-export const getFirstTab = (): AdminTab => {
-  const tabs = getAdminTabs();
-  return tabs[0];
-};
-
-/**
- * Получает последнюю вкладку
- * @returns Последняя вкладка
- */
-export const getLastTab = (): AdminTab => {
-  const tabs = getAdminTabs();
-  return tabs[tabs.length - 1];
+export const getTabColor = (isActive: boolean): 'primary' | 'inherit' => {
+  return isActive ? 'primary' : 'inherit';
 };

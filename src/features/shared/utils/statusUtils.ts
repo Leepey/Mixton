@@ -1,16 +1,16 @@
-// features/shared/utils/statusUtils.ts
+// src/features/shared/utils/statusUtils.ts
 import type { AppStatus, TransactionStatus, SystemStatus, UserStatus } from '../types/status.types';
-import { 
-  CheckCircle, 
-  HourglassEmpty, 
-  Warning,
-  Circle,
-  PowerSettingsNew,
-  Build,
-  Person,
-  PersonOff,
-  Block,
-  Schedule
+import {
+  CheckCircle as CheckCircleIcon,
+  HourglassEmpty as HourglassEmptyIcon,
+  Warning as WarningIcon,
+  Circle as CircleIcon,
+  PowerSettingsNew as PowerSettingsNewIcon,
+  Build as BuildIcon,
+  Person as PersonIcon,
+  PersonOff as PersonOffIcon,
+  Block as BlockIcon,
+  Schedule as ScheduleIcon
 } from '@mui/icons-material';
 
 /**
@@ -29,9 +29,9 @@ export const getTransactionStatusColor = (status: TransactionStatus): AppStatus 
  */
 export const getTransactionStatusIcon = (status: TransactionStatus) => {
   return {
-    completed: <CheckCircle />,
-    pending: <HourglassEmpty />,
-    failed: <Warning />
+    completed: <CheckCircleIcon />,
+    pending: <HourglassEmptyIcon />,
+    failed: <WarningIcon />
   }[status];
 };
 
@@ -52,10 +52,10 @@ export const getSystemStatusColor = (status: SystemStatus): AppStatus => {
  */
 export const getSystemStatusIcon = (status: SystemStatus) => {
   return {
-    online: <PowerSettingsNew />,
-    offline: <Circle />,
-    maintenance: <Build />,
-    error: <Warning />
+    online: <CheckCircleIcon />,
+    offline: <PowerSettingsNewIcon />,
+    maintenance: <BuildIcon />,
+    error: <WarningIcon />
   }[status];
 };
 
@@ -76,10 +76,10 @@ export const getUserStatusColor = (status: UserStatus): AppStatus => {
  */
 export const getUserStatusIcon = (status: UserStatus) => {
   return {
-    active: <Person />,
-    inactive: <PersonOff />,
-    banned: <Block />,
-    pending: <Schedule />
+    active: <PersonIcon />,
+    inactive: <PersonOffIcon />,
+    banned: <BlockIcon />,
+    pending: <ScheduleIcon />
   }[status];
 };
 
@@ -88,4 +88,66 @@ export const getUserStatusIcon = (status: UserStatus) => {
  */
 export const formatStatusLabel = (status: string): string => {
   return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+/**
+ * Получает описание для статуса транзакции
+ */
+export const getTransactionStatusDescription = (status: TransactionStatus): string => {
+  const descriptions = {
+    completed: 'Transaction completed successfully',
+    pending: 'Transaction is being processed',
+    failed: 'Transaction failed to complete'
+  };
+  return descriptions[status] || 'Unknown status';
+};
+
+/**
+ * Получает описание для статуса системы
+ */
+export const getSystemStatusDescription = (status: SystemStatus): string => {
+  const descriptions = {
+    online: 'System is operating normally',
+    offline: 'System is currently offline',
+    maintenance: 'System is under maintenance',
+    error: 'System has encountered an error'
+  };
+  return descriptions[status] || 'Unknown status';
+};
+
+/**
+ * Получает описание для статуса пользователя
+ */
+export const getUserStatusDescription = (status: UserStatus): string => {
+  const descriptions = {
+    active: 'User account is active',
+    inactive: 'User account is inactive',
+    banned: 'User account has been banned',
+    pending: 'User account is pending verification'
+  };
+  return descriptions[status] || 'Unknown status';
+};
+
+/**
+ * Проверяет, является ли статус "активным" (положительным)
+ */
+export const isPositiveStatus = (status: string): boolean => {
+  const positiveStatuses = ['success', 'completed', 'online', 'active'];
+  return positiveStatuses.includes(status.toLowerCase());
+};
+
+/**
+ * Проверяет, является ли статус "предупреждающим"
+ */
+export const isWarningStatus = (status: string): boolean => {
+  const warningStatuses = ['warning', 'pending', 'maintenance', 'offline'];
+  return warningStatuses.includes(status.toLowerCase());
+};
+
+/**
+ * Проверяет, является ли статус "ошибочным" (отрицательным)
+ */
+export const isErrorStatus = (status: string): boolean => {
+  const errorStatuses = ['error', 'failed', 'banned'];
+  return errorStatuses.includes(status.toLowerCase());
 };

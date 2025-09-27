@@ -6,6 +6,8 @@ export interface HomeStats {
 }
 
 export interface FeatureCard {
+  id?: string;
+  details?: string[];
   icon: React.ReactNode;
   title: string;
   description: string;

@@ -1,18 +1,19 @@
 // src/features/home/components/FeatureCard.tsx
-
 import React from 'react';
-import { 
-  Paper, 
-  Typography, 
-  Box, 
-  alpha, 
+import {
+  Paper,
+  Typography,
+  Box,
+  alpha,
   useTheme,
   CardActionArea,
-  Grow
+  IconButton,
+  Chip,
+  Tooltip
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import { Info, Star, ArrowForward } from '@mui/icons-material';
 
-// Полностью определяем интерфейс без наследования
 interface FeatureCardProps {
   id?: string;
   title: string;
@@ -29,14 +30,14 @@ interface FeatureCardProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   className?: string;
-  style?: React.CSSProperties;
+  sx?: React.CSSProperties;
 }
 
-export const FeatureCard: React.FC<FeatureCardProps> = ({ 
+export const FeatureCard: React.FC<FeatureCardProps> = ({
   id,
-  title, 
-  description, 
-  icon, 
+  title,
+  description,
+  icon,
   details,
   category,
   badge,
@@ -48,13 +49,11 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
   onMouseEnter,
   onMouseLeave,
   className,
-  style
+  sx
 }) => {
   const theme = useTheme();
   const defaultGlowColor = theme.palette.primary.main;
-
   const cardGlowColor = glowColor || defaultGlowColor;
-
   const [isHovered, setIsHovered] = React.useState(false);
 
   const handleMouseEnter = () => {
@@ -71,287 +70,175 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
   const cardId = id || `feature-${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`;
 
   const renderCompact = () => (
-    <Paper 
-      elevation={0}
-      sx={{
-        p: 3,
-        borderRadius: '12px',
-        height: '100%',
-        background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.grey[900], 0.6)})`,
-        backdropFilter: 'blur(10px)',
-        border: `1px solid ${alpha(cardGlowColor, 0.1)}`,
-        transition: 'transform 0.3s, box-shadow 0.3s',
-        cursor: onClick ? 'pointer' : 'default',
-        transform: isHovered ? 'translateY(-4px)' : 'none',
-        boxShadow: isHovered && onClick ? `0 8px 25px ${alpha(cardGlowColor, 0.2)}` : 'none',
-        borderColor: isHovered && onClick ? alpha(cardGlowColor, 0.3) : alpha(cardGlowColor, 0.1)
-      }}
-      onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={className}
-      style={style}
-      data-feature-id={cardId}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
-        <Box sx={{ 
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minWidth: 48,
-          height: 48,
-          borderRadius: '12px',
-          background: alpha(cardGlowColor, 0.1),
-          color: cardGlowColor,
-          fontSize: '1.5rem',
-          flexShrink: 0,
-          transition: 'all 0.3s ease',
-          transform: isHovered ? 'scale(1.1)' : 'none'
-        }}>
+    <CardActionArea onClick={onClick} sx={{ p: 2 }}>
+      <Box display="flex" alignItems="center" gap={2}>
+        <Box
+          sx={{
+            fontSize: '2rem',
+            color: theme.palette.primary.main,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
           {icon}
         </Box>
-        
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="h6" sx={{ 
-            fontWeight: 600, 
-            mb: 1,
-            color: cardGlowColor,
-            fontSize: '1rem',
-            transition: 'color 0.3s ease'
-          }}>
+        <Box>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
             {title}
           </Typography>
-          
-          <Typography variant="body2" color="text.secondary" sx={{ 
-            lineHeight: 1.5,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-          }}>
+          <Typography variant="body2" color="text.secondary">
             {description}
           </Typography>
         </Box>
       </Box>
-    </Paper>
+    </CardActionArea>
   );
 
   const renderDefault = () => (
-    <Paper 
-      elevation={0}
-      sx={{
-        p: 4,
-        borderRadius: '16px',
-        height: '100%',
-        background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.grey[900], 0.6)})`,
-        backdropFilter: 'blur(10px)',
-        border: `1px solid ${alpha(cardGlowColor, 0.1)}`,
-        transition: 'transform 0.3s, box-shadow 0.3s',
-        cursor: onClick ? 'pointer' : 'default',
-        transform: isHovered ? 'translateY(-6px)' : 'none',
-        boxShadow: isHovered && onClick ? `0 12px 35px ${alpha(cardGlowColor, 0.25)}` : 'none',
-        borderColor: isHovered && onClick ? alpha(cardGlowColor, 0.3) : alpha(cardGlowColor, 0.1)
-      }}
-      onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={className}
-      style={style}
-      data-feature-id={cardId}
-    >
-      <Box sx={{ 
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 3,
-        borderRadius: '16px',
-        bgcolor: alpha(cardGlowColor, 0.1),
-        color: cardGlowColor,
-        mb: 3,
-        fontSize: '2.5rem',
-        width: 80,
-        height: 80,
-        transition: 'all 0.3s ease',
-        transform: isHovered ? 'scale(1.1)' : 'none'
-      }}>
-        {icon}
+    <CardActionArea onClick={onClick} sx={{ p: 3 }}>
+      <Box textAlign="center" mb={2}>
+        <Box
+          sx={{
+            fontSize: '3rem',
+            color: theme.palette.primary.main,
+            mb: 2,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {icon}
+        </Box>
+        {featured && (
+          <Chip
+            icon={<Star />}
+            label="Featured"
+            size="small"
+            color="secondary"
+            sx={{ mb: 1 }}
+          />
+        )}
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          {title}
+        </Typography>
+        <Typography 
+          variant="body2" 
+          color="text.secondary"
+          sx={{ 
+            minHeight: details && details.length > 0 ? '4.5em' : 'auto',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}
+        >
+          {description}
+        </Typography>
       </Box>
       
-      <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: cardGlowColor }}>
-        {title}
-      </Typography>
-      
-      <Typography variant="body1" color="text.secondary" sx={{ 
-        lineHeight: 1.6,
-        mb: details && details.length > 0 ? 3 : 0
-      }}>
-        {description}
-      </Typography>
-      
       {details && details.length > 0 && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Box mt={2}>
           {details.slice(0, 3).map((detail, index) => (
-            <Box 
+            <Typography 
               key={index} 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1.5,
-                p: 1,
-                borderRadius: '6px',
-                bgcolor: alpha(cardGlowColor, 0.05),
-                transition: 'background-color 0.2s',
-                '&:hover': {
-                  bgcolor: alpha(cardGlowColor, 0.08)
-                }
-              }}
+              variant="caption" 
+              color="text.secondary"
+              display="block"
+              sx={{ mb: 0.5 }}
             >
-              <Box 
-                sx={{ 
-                  width: 6, 
-                  height: 6, 
-                  borderRadius: '50%',
-                  bgcolor: cardGlowColor,
-                  flexShrink: 0 
-                }} 
-              />
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                {detail}
-              </Typography>
-            </Box>
+              • {detail}
+            </Typography>
           ))}
           {details.length > 3 && (
-            <Typography variant="body2" sx={{ 
-              color: alpha(cardGlowColor, 0.7),
-              fontSize: '0.75rem',
-              mt: 1,
-              fontStyle: 'italic'
-            }}>
+            <Typography variant="caption" color="primary">
               +{details.length - 3} more features
             </Typography>
           )}
         </Box>
       )}
-    </Paper>
+    </CardActionArea>
   );
 
   const renderDetailed = () => (
-    <Paper 
-      elevation={0}
-      sx={{
-        p: 5,
-        borderRadius: '20px',
-        height: '100%',
-        background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.grey[900], 0.6)})`,
-        backdropFilter: 'blur(10px)',
-        border: `1px solid ${alpha(cardGlowColor, 0.1)}`,
-        transition: 'transform 0.3s, box-shadow 0.3s',
-        cursor: onClick ? 'pointer' : 'default',
-        position: 'relative',
-        overflow: 'hidden',
-        transform: isHovered ? 'translateY(-8px)' : 'none',
-        boxShadow: isHovered && onClick ? `0 20px 40px ${alpha(cardGlowColor, 0.3)}` : 'none',
-        borderColor: isHovered && onClick ? alpha(cardGlowColor, 0.3) : alpha(cardGlowColor, 0.1),
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '4px',
-          background: `linear-gradient(90deg, ${cardGlowColor}, ${alpha(cardGlowColor, 0.6)})`,
-          opacity: isHovered ? 1 : 0.8,
-          transition: 'opacity 0.3s ease'
-        }
-      }}
-      onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={className}
-      style={style}
-      data-feature-id={cardId}
-    >
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', mb: 4 }}>
-        <Box sx={{ 
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 4,
-          borderRadius: '20px',
-          background: `linear-gradient(135deg, ${alpha(cardGlowColor, 0.15)}, ${alpha(cardGlowColor, 0.05)})`,
-          color: cardGlowColor,
-          mb: 3,
-          fontSize: '3rem',
-          width: 100,
-          height: 100,
-          boxShadow: `0 8px 25px ${alpha(cardGlowColor, 0.2)}`,
-          transition: 'all 0.3s ease',
-          transform: isHovered ? 'scale(1.1)' : 'none'
-        }}>
+    <Box sx={{ p: 3 }}>
+      <Box textAlign="center" mb={3}>
+        <Box
+          sx={{
+            fontSize: '4rem',
+            color: theme.palette.primary.main,
+            mb: 2,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
           {icon}
         </Box>
-        
-        <Typography variant="h4" sx={{ 
-          fontWeight: 800, 
-          mb: 2, 
-          background: `linear-gradient(45deg, ${cardGlowColor}, ${alpha(cardGlowColor, 0.7)})`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          transition: 'all 0.3s ease'
-        }}>
+        {badge && (
+          <Chip
+            label={badge}
+            size="small"
+            sx={{ 
+              mb: 2,
+              background: alpha(theme.palette.secondary.main, 0.1),
+              color: theme.palette.secondary.main,
+              border: `1px solid ${alpha(theme.palette.secondary.main, 0.3)}`
+            }}
+          />
+        )}
+        {featured && (
+          <Chip
+            icon={<Star />}
+            label="Featured"
+            size="small"
+            color="secondary"
+            sx={{ mb: 2, ml: 1 }}
+          />
+        )}
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
           {title}
+        </Typography>
+        {category && (
+          <Typography variant="subtitle2" color="primary" gutterBottom>
+            {category}
+          </Typography>
+        )}
+        <Typography 
+          variant="body1" 
+          color="text.secondary"
+          sx={{ 
+            mb: 3,
+            lineHeight: 1.6
+          }}
+        >
+          {description}
         </Typography>
       </Box>
       
-      <Typography variant="body1" color="text.secondary" sx={{ 
-        lineHeight: 1.7,
-        mb: details && details.length > 0 ? 4 : 0,
-        textAlign: 'center',
-        fontSize: '1.1rem'
-      }}>
-        {description}
-      </Typography>
-      
       {details && details.length > 0 && (
-        <Box sx={{ 
-          display: 'grid', 
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-          gap: 2,
-          mt: 3
-        }}>
+        <Box mb={3}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            Key Features:
+          </Typography>
           {details.map((detail, index) => (
             <Box 
               key={index} 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'flex-start', 
-                gap: 2,
-                p: 2.5,
-                borderRadius: '12px',
-                bgcolor: alpha(cardGlowColor, 0.05),
-                border: `1px solid ${alpha(cardGlowColor, 0.1)}`,
-                transition: 'all 0.2s',
-                '&:hover': {
-                  bgcolor: alpha(cardGlowColor, 0.08),
-                  transform: 'translateY(-2px)',
-                  boxShadow: `0 4px 15px ${alpha(cardGlowColor, 0.15)}`
-                }
-              }}
+              display="flex" 
+              alignItems="center" 
+              gap={1}
+              mb={1}
             >
-              <Box 
-                sx={{ 
-                  width: 8, 
-                  height: 8, 
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
                   borderRadius: '50%',
-                  bgcolor: cardGlowColor,
-                  flexShrink: 0,
-                  mt: '6px'
-                }} 
+                  background: theme.palette.primary.main,
+                  flexShrink: 0
+                }}
               />
-              <Typography variant="body2" color="text.secondary" sx={{ 
-                lineHeight: 1.5,
-                fontSize: '0.9rem'
-              }}>
+              <Typography variant="body2" color="text.secondary">
                 {detail}
               </Typography>
             </Box>
@@ -360,29 +247,23 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
       )}
       
       {onClick && (
-        <Box sx={{ 
-          mt: 4, 
-          textAlign: 'center',
-          pt: 3,
-          borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-        }}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: cardGlowColor,
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-              transition: 'all 0.3s ease',
-              opacity: isHovered ? 1 : 0.8
-            }}
-          >
-            Learn More →
-          </Typography>
+        <Box textAlign="center">
+          <Tooltip title="Learn more">
+            <IconButton
+              onClick={onClick}
+              sx={{
+                color: theme.palette.primary.main,
+                '&:hover': {
+                  background: alpha(theme.palette.primary.main, 0.1)
+                }
+              }}
+            >
+              <ArrowForward />
+            </IconButton>
+          </Tooltip>
         </Box>
       )}
-    </Paper>
+    </Box>
   );
 
   const renderContent = () => {
@@ -398,17 +279,39 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay }}
-      whileHover={{ scale: onClick ? 1.02 : 1 }}
-      style={{ height: '100%' }}
-      className={className}
+      transition={{ delay, duration: 0.5 }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      data-feature-id={cardId}
+      style={{ height: '100%' }}
     >
-      {renderContent()}
+      <Paper
+        elevation={isHovered ? 8 : 2}
+        sx={{
+          height: '100%',
+          borderRadius: 3,
+          background: alpha(theme.palette.background.paper, 0.05),
+          backdropFilter: 'blur(10px)',
+          border: `1px solid ${alpha(cardGlowColor, 0.2)}`,
+          transition: 'all 0.3s ease',
+          overflow: 'hidden',
+          position: 'relative',
+          '&::before': featured ? {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+          } : {},
+          ...sx
+        }}
+        className={className}
+      >
+        {renderContent()}
+      </Paper>
     </motion.div>
   );
 };

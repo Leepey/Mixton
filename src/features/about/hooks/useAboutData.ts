@@ -1,7 +1,7 @@
 // features/about/hooks/useAboutData.ts
 import { useState, useEffect } from 'react';
 import { AboutService } from '../services/aboutService';
-import { TeamMember, TimelineEvent, Feature, FAQItem, AboutStats, ContactInfo } from '../types/about.types';
+import type { TeamMember, TimelineEvent, Feature, FAQItem, AboutStats, ContactInfo } from '../types/about.types';
 
 export const useAboutData = () => {
   const [team, setTeam] = useState<TeamMember[]>([]);

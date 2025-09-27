@@ -35,6 +35,12 @@ interface AdminTransactionDetailsProps {
   transaction: Transaction | null;
 }
 
+// Функция для безопасного получения цвета чипа
+const getChipColor = (color: string): "default" | "primary" | "secondary" | "success" | "error" | "info" | "warning" => {
+  const validColors = ["default", "primary", "secondary", "success", "error", "info", "warning"] as const;
+  return validColors.includes(color as any) ? color as any : "default";
+};
+
 export const AdminTransactionDetails: React.FC<AdminTransactionDetailsProps> = ({ 
   open, 
   onClose, 
@@ -127,7 +133,7 @@ export const AdminTransactionDetails: React.FC<AdminTransactionDetailsProps> = (
                 label={transaction.status} 
                 size="small"
                 icon={statusIcon}
-                color={getTransactionStatusColor(transaction.status)}
+                color={getChipColor(getTransactionStatusColor(transaction.status))}
               />
             </Grid>
             
@@ -191,7 +197,7 @@ export const AdminTransactionDetails: React.FC<AdminTransactionDetailsProps> = (
               </Typography>
               <IconButton 
                 size="small" 
-                onClick={() => handleCopy(transaction.inputAddress)}
+                onClick={() => transaction.inputAddress && handleCopy(transaction.inputAddress)}
                 color={copied ? 'success' : 'default'}
               >
                 <CopyAll fontSize="small" />
@@ -199,7 +205,7 @@ export const AdminTransactionDetails: React.FC<AdminTransactionDetailsProps> = (
               <Tooltip title="View in Explorer">
                 <IconButton 
                   size="small" 
-                  onClick={() => openInExplorer(transaction.inputAddress)}
+                  onClick={() => transaction.inputAddress && openInExplorer(transaction.inputAddress)}
                 >
                   <OpenInNew fontSize="small" />
                 </IconButton>

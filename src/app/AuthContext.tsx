@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [connected, address, balance]);
 
-  const login = async (credentials?: any) => {
+  const login = async (credentials?: any): Promise<void> => {
     try {
       connectWallet();
       // Дополнительная логика аутентификации при необходимости
@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Дополнительная логика выхода при необходимости
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     login,
     logout,
