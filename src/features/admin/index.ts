@@ -1,48 +1,14 @@
-// src/features/admin/index.ts
-export { AdminService } from './services/adminService';
-export { SecurityService } from './services/securityService';
-export { useAdminAuth } from './hooks/useAdminAuth';
-export { useContractManagement } from './hooks/useContractManagement';
-export { useUserManagement } from './hooks/useUserManagement';
-export { useAdminTabs } from './hooks/useAdminTabs';
+// Components
+export * from './components';
 
-// Компоненты
-export { AdminPanelLayout } from './components/AdminPanelLayout';
-export { AnalyticsPanel } from './components/AnalyticsPanel';
-export { ContractSettingsComponent } from './components/ContractSettingsComponent';
-export { SecuritySettingsComponent } from './components/SecuritySettingsComponent';
-export { UserManagement } from './components/UserManagement';
-export { TransactionTable } from './components/TransactionTable';
-export { AdminTransactionDetails } from './components/AdminTransactionDetails';
+// Hooks
+export * from './hooks';
 
-// Утилиты - исправлено дублирование getAdminTabs
-export { 
-  formatAdminAddress, 
-  getTransactionStatusColor 
-} from './utils/adminUtils';
+// Services
+export * from './services';
 
-export {
-  getAdminTabs,
-  getTabValueById,
-  getTabIdByValue,
-  isValidTabValue,
-  getTabIcon,
-  getTabDescription,
-  getAllTabValues,
-  getNextTab,
-  getPreviousTab
-} from './utils/adminTabsUtils';
+// Types
+export * from './types';
 
-// Типы
-export type {
-  AdminSettings,
-  PoolInfo,
-  FeeRates,
-  Limits,
-  Delays,
-  Stats,
-  Transaction,
-  AdminTabValue,
-  AdminTab,
-  AdminStats
-} from './types/admin.types';
+// Utils
+export * from './utils';

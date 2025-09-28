@@ -1,9 +1,6 @@
-// features/admin/components/index.ts
-export { AdminPanelLayout } from './AdminPanelLayout';
-export { AnalyticsPanel } from './AnalyticsPanel';
-export { ContractSettings } from '../../about/components/ContractSettings';
-export { ContractSettingsComponent } from './ContractSettingsComponent';
-export { SecuritySettingsComponent } from './SecuritySettingsComponent';
+export { AdminDashboard } from './AdminDashboard';
 export { UserManagement } from './UserManagement';
-export { TransactionTable } from './TransactionTable';
-export { AdminTransactionDetails } from './AdminTransactionDetails';
+export { PoolManagement } from './PoolManagement';
+export { TransactionMonitor } from './TransactionMonitor';
+export { SystemSettings } from './SystemSettings';
+export { Analytics } from './Analytics';

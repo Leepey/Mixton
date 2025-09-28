@@ -1,9 +1,14 @@
-// pages/NotFound.tsx
 import React from 'react';
-import { NotFoundPage } from '../features/shared/components/errors/NotFoundPage';
+import { Link } from 'react-router-dom';
 
 const NotFound: React.FC = () => {
-  return <NotFoundPage />;
+  return (
+    <div className='not-found-page'>
+      <h1>404 - Page Not Found</h1>
+      <p>The page you are looking for does not exist.</p>
+      <Link to='/'>Go to Home</Link>
+    </div>
+  );
 };
 
 export default NotFound;

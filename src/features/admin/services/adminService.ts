@@ -1,32 +1,21 @@
-// features/admin/services/adminService.ts
-import { AdminSettings } from '../types/admin.types';
+export const adminService = {
+  // Получение статистики админки
+  getStats: async () => {
+    try {
+      // Логика получения статистики
+      return {};
+    } catch (error) {
+      throw error;
+    }
+  },
 
-export class AdminService {
-  static async getAdminSettings(): Promise<AdminSettings> {
-    // Р—РґРµСЃСЊ Р±СѓРґРµС‚ Р»РѕРіРёРєР° РїРѕР»СѓС‡РµРЅРёСЏ РЅР°СЃС‚СЂРѕРµРє Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°
-    return {
-      feeRate: 0.003,
-      minAmount: 0.01,
-      maxAmount: 100,
-      autoProcess: true,
-      processInterval: 3600
-    };
+  // Получение системной информации
+  getSystemInfo: async () => {
+    try {
+      // Логика получения системной информации
+      return {};
+    } catch (error) {
+      throw error;
+    }
   }
-
-  static async updateAdminSettings(settings: AdminSettings): Promise<boolean> {
-    // Р—РґРµСЃСЊ Р±СѓРґРµС‚ Р»РѕРіРёРєР° РѕР±РЅРѕРІР»РµРЅРёСЏ РЅР°СЃС‚СЂРѕРµРє Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°
-    console.log('Updating admin settings:', settings);
-    return true;
-  }
-
-  static async processQueue(): Promise<boolean> {
-    // Р—РґРµСЃСЊ Р±СѓРґРµС‚ Р»РѕРіРёРєР° РѕР±СЂР°Р±РѕС‚РєРё РѕС‡РµСЂРµРґРё С‚СЂР°РЅР·Р°РєС†РёР№
-    console.log('Processing queue...');
-    return true;
-  }
-
-  static async refreshData(): Promise<void> {
-    // Р—РґРµСЃСЊ Р±СѓРґРµС‚ Р»РѕРіРёРєР° РѕР±РЅРѕРІР»РµРЅРёСЏ РґР°РЅРЅС‹С…
-    console.log('Refreshing data...');
-  }
-}
+};

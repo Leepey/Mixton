@@ -1,4 +1,4 @@
-// src copy/features/mixer/index.ts
+// src/features/mixer/index.ts
 // Компоненты
 export * from './components';
 
@@ -13,3 +13,6 @@ export * from './types';
 
 // Утилиты
 export * from './utils';
+
+// Константы
+export * from './constants';

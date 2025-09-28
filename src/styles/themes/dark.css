@@ -1,0 +1,25 @@
+/* Dark theme for Mixton */
+:root {
+  --primary-color: #0088cc;
+  --primary-color-dark: #006ba6;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  
+  --text-primary: #f8f9fa;
+  --text-secondary: #adb5bd;
+  --text-light: #212529;
+  
+  --bg-primary: #1a1d20;
+  --bg-secondary: #212529;
+  --bg-dark: #f8f9fa;
+  
+  --border-color: #343a40;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}

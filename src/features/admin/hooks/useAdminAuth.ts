@@ -1,25 +1,33 @@
-// features/admin/hooks/useAdminAuth.ts
 import { useState, useEffect } from 'react';
-import { useTonConnect } from '../../shared/hooks/useTonConnect';
-import { SecurityService } from '../services/securityService';
 
 export const useAdminAuth = () => {
-  const { address } = useTonConnect();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
-  const adminAddress = import.meta.env.VITE_ADMIN_ADDRESS;
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAdmin = () => {
-      const hasPermission = SecurityService.checkAdminPermission(address, adminAddress);
-      setIsAdmin(hasPermission);
-      
-      const debug = SecurityService.getDebugInfo(address, adminAddress);
-      setDebugInfo(debug);
+    // Проверка аутентификации админа
+    const checkAuth = async () => {
+      try {
+        // Здесь будет логика проверки аутентификации
+        setIsAuthenticated(true);
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    checkAdmin();
-  }, [address, adminAddress]);
+    checkAuth();
+  }, []);
 
-  return { isAdmin, debugInfo, adminAddress };
+  return {
+    isAuthenticated,
+    loading,
+    login: async (credentials: any) => {
+      // Логика входа
+    },
+    logout: async () => {
+      // Логика выхода
+    }
+  };
 };

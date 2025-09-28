@@ -1,0 +1,50 @@
+/* CSS Variables for Mixton */
+:root {
+  /* Colors */
+  --primary-color: #0088cc;
+  --primary-color-dark: #006ba6;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  
+  /* Text colors */
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-light: #f8f9fa;
+  
+  /* Background colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-dark: #343a40;
+  
+  /* Borders */
+  --border-color: #dee2e6;
+  --border-radius: 4px;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Shadows */
+  --box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme variables */
+[data-theme='dark'] {
+  --text-primary: #f8f9fa;
+  --text-secondary: #adb5bd;
+  --text-light: #212529;
+  
+  --bg-primary: #1a1d20;
+  --bg-secondary: #212529;
+  --bg-dark: #f8f9fa;
+  
+  --border-color: #343a40;
+}
