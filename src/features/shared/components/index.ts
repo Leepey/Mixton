@@ -2,11 +2,10 @@
 
 // Основные компоненты
 export { ErrorBoundary } from './ErrorBoundary';
-export { ErrorBoundaryWrapper } from './ErrorBoundaryWrapper';
-export { ErrorTest } from './ErrorTest';
-export { ProviderTester } from './ProviderTester';
-export { TonConnectErrorBoundary } from './TonConnectErrorBoundary';
-export { TonConnectProvider } from './TonConnectProvider';
+export * from './errors/NetworkErrorPage';
+export * from './errors/NotFoundPage';
+export * from './errors/ServerErrorPage';
+export * from './errors/UnauthorizedPage';
 
 // UI компоненты
 export { NeonCard } from './ui/cards/NeonCard';
@@ -20,6 +19,6 @@ export { ConfirmationModal } from './ui/modals/ConfirmationModal';
 export { NeonText } from './ui/typography/NeonText';
 
 // Layout компоненты
-export { Footer } from './ui/layout/Footer';
+export * from './ui/layout/Footer';
 export { MainLayout } from './ui/layout/MainLayout';
-export { Navbar } from './ui/layout/Navbar';
+export * from './ui/layout/Navbar';
