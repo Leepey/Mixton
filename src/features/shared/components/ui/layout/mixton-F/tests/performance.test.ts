@@ -1,28 +1,38 @@
-//tests\performance.test.ts
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { Cell, toNano, Address } from '@ton/core';
-import { Mixton, ProcessQueueResult } from '../wrappers/Mixton';
+import { Cell, toNano, Address, beginCell, Sender } from '@ton/core';
+import { Mixton } from '../wrappers/Mixton';
 import '@ton/test-utils';
 import { compile } from '@ton/blueprint';
 
-// Импортируем константы из wrappers
-import { MIN_DELAY } from '../wrappers/Mixton';
+// Вспомогательная функция для безопасного сравнения адресов
+function isInternalAddress(address: Address | any): address is Address {
+    return address !== null && address !== undefined && address instanceof Address;
+}
+
+function addressesEqual(addr1: Address | any, addr2: Address | any): boolean {
+    if (!isInternalAddress(addr1) || !isInternalAddress(addr2)) {
+        return false;
+    }
+    return addr1.toString() === addr2.toString();
+}
 
 describe('Mixton Performance Tests', () => {
     let code: Cell;
+    beforeAll(async () => {
+        code = await compile('Mixton');
+    }, 30000);
+
     let blockchain: Blockchain;
+    let deployer: SandboxContract<TreasuryContract>;
     let admin: SandboxContract<TreasuryContract>;
     let user: SandboxContract<TreasuryContract>;
     let recipient: SandboxContract<TreasuryContract>;
     let mixton: SandboxContract<Mixton>;
 
-    beforeAll(async () => {
-        code = await compile('Mixton');
-    }, 30000);
-
     beforeEach(async () => {
         blockchain = await Blockchain.create();
         blockchain.now = Math.floor(Date.now() / 1000);
+        deployer = await blockchain.treasury('deployer');
         admin = await blockchain.treasury('admin');
         user = await blockchain.treasury('user');
         recipient = await blockchain.treasury('recipient');
@@ -36,280 +46,270 @@ describe('Mixton Performance Tests', () => {
             )
         );
 
-        // Инициализация контракта
-        await mixton.sendInternal(admin.getSender(), {
+        // Отправляем сообщение от администратора для инициализации контракта
+        const initResult = await mixton.sendInternal(admin.getSender(), {
             value: toNano('0.05'),
-            body: Cell.EMPTY,
+            body: beginCell().endCell(),
+        });
+        expect(initResult.transactions).toHaveTransaction({
+            from: admin.address,
+            to: mixton.address,
+            success: true,
         });
     }, 10000);
 
+    // Вспомогательные функции
+    const findTransactionByAddresses = (transactions: any[], from: Address, to: Address) => {
+        return transactions.find((tx: any) =>
+            tx.inMessage &&
+            tx.inMessage.info &&
+            tx.inMessage.info.src &&
+            tx.inMessage.info.dest &&
+            addressesEqual(tx.inMessage.info.src, from) &&
+            addressesEqual(tx.inMessage.info.dest, to)
+        );
+    };
+
+    const isTransactionSuccessful = (tx: any) => {
+        return tx?.description?.computePhase?.success === true;
+    };
+
+    const getTransactionExitCode = (tx: any) => {
+        return tx?.description?.computePhase?.exitCode;
+    };
+
+    // Функция для обновления времени в контракте
+    const updateContractTime = async (mixton: SandboxContract<Mixton>, newTime: number, sender: Sender) => {
+        const updateTimeResult = await mixton.sendInternal(sender, {
+            value: toNano('0.01'),
+            body: beginCell()
+                .storeUint(0x75706474, 32) // OP_UPDATE_TIME = "updt"
+                .storeUint(newTime, 64)
+                .endCell(),
+        });
+        return updateTimeResult;
+    };
+
     it('should measure gas consumption for deposits', async () => {
-        const iterations = 5;
-        let totalGas = 0n;
-
-        for (let i = 0; i < iterations; i++) {
-            const result = await mixton.sendDeposit(user.getSender(), toNano('1.0'));
-            const gasUsed = result.transactions.reduce((sum: bigint, tx: any) => {
-                if (tx.totalFees && typeof tx.totalFees === 'bigint') {
-                    return sum + tx.totalFees;
-                }
-                return sum;
-            }, 0n);
-            totalGas += gasUsed;
-        }
-
-        const avgGas = totalGas / BigInt(iterations);
-        console.log(`Average gas per deposit: ${avgGas.toString()}`);
+        const gasConsumptions: number[] = [];
         
-        expect(avgGas).toBeLessThan(toNano('0.01'));
+        // Создаем несколько депозитов и измеряем потребление газа
+        for (let i = 0; i < 5; i++) {
+            const depositResult = await mixton.sendDeposit(user.getSender(), toNano('1.0'));
+            
+            // Добавляем задержку для обработки транзакции
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            const tx = findTransactionByAddresses(depositResult.transactions, user.address, mixton.address);
+            if (tx && tx.description && tx.description.computePhase) {
+                const gasUsed = tx.description.computePhase.gasUsed || 0;
+                gasConsumptions.push(gasUsed);
+            }
+        }
+        
+        // ИСПРАВЛЕНО: Правильно вычисляем среднее значение с использованием BigInt
+        const totalGas = gasConsumptions.reduce((sum, gas) => BigInt(sum) + BigInt(gas), BigInt(0));
+        const averageGas = Number(totalGas) / gasConsumptions.length;
+        console.log(`Average gas per deposit: ${averageGas}`);
+        
+        // Проверяем, что потребление газа находится в разумных пределах
+        expect(averageGas).toBeLessThan(50000);
+        expect(averageGas).toBeGreaterThan(10000);
+    }, 15000);
+
+    it('should handle large batches efficiently', async () => {
+        // Создаем несколько депозитов
+        for (let i = 0; i < 10; i++) {
+            await mixton.sendDeposit(user.getSender(), toNano('2.0'));
+            // Добавляем задержку для обработки транзакции
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        // Проверяем, что депозиты созданы
+        const stats = await mixton.getBasicStats();
+        expect(stats.totalDeposits).toBeGreaterThan(0);
+        
+        // Получаем последний ID депозита
+        const lastDepositId = await mixton.getLastDepositId();
+        expect(lastDepositId).toBeGreaterThanOrEqual(BigInt(0));
+        
+        // Создаем несколько запросов на вывод
+        for (let i = 0; i < 10; i++) {
+            const depositId = lastDepositId - BigInt(9 - i);
+            expect(depositId).toBeGreaterThanOrEqual(BigInt(0));
+            
+            await mixton.sendWithdraw(
+                admin.getSender(),
+                recipient.address,
+                toNano('0.5'),
+                depositId,
+                200,
+                30, // Минимальная задержка
+                toNano('0.05')
+            );
+        }
+        
+        const queueInfo = await mixton.getQueueInfo();
+        expect(queueInfo.queueLength).toBe(10);
+        
+        // Увеличиваем время и обновляем его в контракте
+        blockchain.now! += 120;
+        await updateContractTime(mixton, blockchain.now!, user.getSender());
+        
+        // Обрабатываем очередь пакетами
+        let processedCount = 0;
+        const startTime = Date.now();
+        
+        for (let i = 0; i < 15; i++) {
+            const nextQueueItemId = await mixton.getNextQueueItemId();
+            if (nextQueueItemId < BigInt(0)) {
+                break;
+            }
+            
+            await mixton.sendProcessQueue(user.getSender(), nextQueueItemId, toNano('0.05'));
+            processedCount++;
+            // Небольшая задержка между обработками
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        const endTime = Date.now();
+        const processingTime = endTime - startTime;
+        
+        console.log(`Processed ${processedCount} items in ${processingTime}ms`);
+        
+        // Проверяем, что обработка была эффективной
+        expect(processedCount).toBeGreaterThan(0);
+        expect(processingTime).toBeLessThan(10000); // Менее 10 секунд на обработку
+    }, 20000);
+
+    it('should process multiple queue items efficiently', async () => {
+        // Создаем депозиты
+        for (let i = 0; i < 5; i++) {
+            await mixton.sendDeposit(user.getSender(), toNano('3.0'));
+            // Добавляем задержку для обработки транзакции
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        // Проверяем, что депозиты созданы
+        const stats = await mixton.getBasicStats();
+        expect(stats.totalDeposits).toBeGreaterThan(0);
+        
+        // Получаем последний ID депозита
+        const lastDepositId = await mixton.getLastDepositId();
+        expect(lastDepositId).toBeGreaterThanOrEqual(BigInt(0));
+        
+        // Создаем запросы на вывод с разными задержками
+        const delays = [30, 60, 90, 120, 150];
+        for (let i = 0; i < 5; i++) {
+            const depositId = lastDepositId - BigInt(4 - i);
+            expect(depositId).toBeGreaterThanOrEqual(BigInt(0));
+            
+            await mixton.sendWithdraw(
+                admin.getSender(),
+                recipient.address,
+                toNano('0.5'),
+                depositId,
+                200,
+                delays[i],
+                toNano('0.05')
+            );
+        }
+        
+        const queueInfo = await mixton.getQueueInfo();
+        expect(queueInfo.queueLength).toBe(5);
+        
+        // Увеличиваем время и обновляем его в контракте
+        blockchain.now! += 200;
+        await updateContractTime(mixton, blockchain.now!, user.getSender());
+        
+        // Обрабатываем очередь
+        let processedCount = 0;
+        const startTime = Date.now();
+        
+        for (let i = 0; i < 10; i++) {
+            const nextQueueItemId = await mixton.getNextQueueItemId();
+            if (nextQueueItemId < BigInt(0)) {
+                break;
+            }
+            
+            await mixton.sendProcessQueue(user.getSender(), nextQueueItemId, toNano('0.05'));
+            processedCount++;
+            // Небольшая задержка между обработками
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        const endTime = Date.now();
+        const processingTime = endTime - startTime;
+        
+        console.log(`Processed ${processedCount} items with different delays in ${processingTime}ms`);
+        
+        // Проверяем, что обработка была эффективной
+        expect(processedCount).toBeGreaterThan(0);
+        expect(processingTime).toBeLessThan(10000); // Менее 10 секунд на обработку
+    }, 20000);
+
+    it('should handle queue processing under high load', async () => {
+        // Создаем много депозитов
+        for (let i = 0; i < 20; i++) {
+            await mixton.sendDeposit(user.getSender(), toNano('1.0'));
+            // Добавляем задержку для обработки транзакции
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        // Проверяем, что депозиты созданы
+        const stats = await mixton.getBasicStats();
+        expect(stats.totalDeposits).toBeGreaterThan(0);
+        
+        // Получаем последний ID депозита
+        const lastDepositId = await mixton.getLastDepositId();
+        expect(lastDepositId).toBeGreaterThanOrEqual(BigInt(0));
+        
+        // Создаем много запросов на вывод
+        for (let i = 0; i < 20; i++) {
+            const depositId = lastDepositId - BigInt(19 - i);
+            expect(depositId).toBeGreaterThanOrEqual(BigInt(0));
+            
+            await mixton.sendWithdraw(
+                admin.getSender(),
+                recipient.address,
+                toNano('0.2'),
+                depositId,
+                200,
+                30, // Минимальная задержка
+                toNano('0.03')
+            );
+        }
+        
+        const queueInfo = await mixton.getQueueInfo();
+        expect(queueInfo.queueLength).toBe(20);
+        
+        // Увеличиваем время и обновляем его в контракте
+        blockchain.now! += 120;
+        await updateContractTime(mixton, blockchain.now!, user.getSender());
+        
+        // Обрабатываем очередь под высокой нагрузкой
+        let processedCount = 0;
+        const startTime = Date.now();
+        
+        for (let i = 0; i < 25; i++) {
+            const nextQueueItemId = await mixton.getNextQueueItemId();
+            if (nextQueueItemId < BigInt(0)) {
+                break;
+            }
+            
+            await mixton.sendProcessQueue(user.getSender(), nextQueueItemId, toNano('0.03'));
+            processedCount++;
+            // Минимальная задержка между обработками
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
+        const endTime = Date.now();
+        const processingTime = endTime - startTime;
+        
+        console.log(`Processed ${processedCount} items under high load in ${processingTime}ms`);
+        
+        // Проверяем, что обработка была эффективной даже под высокой нагрузкой
+        expect(processedCount).toBeGreaterThan(0);
+        expect(processingTime).toBeLessThan(15000); // Менее 15 секунд на обработку под высокой нагрузкой
     }, 30000);
-
-it('should handle large batches efficiently', async () => {
-    // Создаем 1 элемент в очереди для простоты
-    await mixton.sendDeposit(user.getSender(), toNano('2.0'));
-    const lastDepositId = await mixton.getLastDepositId();
-    await mixton.sendWithdraw(
-        admin.getSender(),
-        recipient.address,
-        toNano('0.5'),
-        lastDepositId,
-        200,
-        MIN_DELAY,
-        toNano('0.05')
-    );
-    
-    // Получаем начальные значения
-    const initialRecipientBalance = await recipient.getBalance();
-    const initialStats = await mixton.getBasicStats();
-    const initialQueueInfo = await mixton.getQueueInfo();
-    
-    console.log(`Initial queue length: ${initialQueueInfo.queueLength}`);
-    console.log(`Initial recipient balance: ${initialRecipientBalance.toString()}`);
-    console.log(`Initial total withdrawn: ${initialStats.totalWithdrawn.toString()}`);
-    
-    // Увеличиваем время, чтобы элемент в очереди был готов к обработке
-    blockchain.now! += MIN_DELAY + 120; // Увеличиваем время для гарантии
-    
-    // Обрабатываем очередь
-    console.log(`Processing queue`);
-    
-    const beforeQueueInfo = await mixton.getQueueInfo();
-    
-    // Получаем ID следующего элемента для обработки
-    const nextQueueItemId = await mixton.getNextQueueItemId();
-    expect(nextQueueItemId).toBeGreaterThanOrEqual(BigInt(0));
-    
-    // Обрабатываем очередь с указанием ID элемента
-    await mixton.sendProcessQueue(user.getSender(), nextQueueItemId, toNano('0.2'));
-    
-    // Ждем обработки транзакции
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const afterQueueInfo = await mixton.getQueueInfo();
-    
-    console.log(`Queue length before: ${beforeQueueInfo.queueLength}, after: ${afterQueueInfo.queueLength}`);
-    
-    // Получаем финальные значения
-    const finalRecipientBalance = await recipient.getBalance();
-    const finalStats = await mixton.getBasicStats();
-    
-    console.log(`Final recipient balance: ${finalRecipientBalance.toString()}`);
-    console.log(`Final total withdrawn: ${finalStats.totalWithdrawn.toString()}`);
-    
-    // Вычисляем изменения
-    const balanceChange = finalRecipientBalance - initialRecipientBalance;
-    const withdrawnChange = finalStats.totalWithdrawn - initialStats.totalWithdrawn;
-    const queueChange = initialQueueInfo.queueLength - afterQueueInfo.queueLength;
-    
-    console.log(`Balance change: ${balanceChange.toString()}`);
-    console.log(`Withdrawn change: ${withdrawnChange.toString()}`);
-    console.log(`Queue change: ${queueChange}`);
-    
-    // ИСПРАВЛЕНО: Проверяем, что хотя бы один из показателей улучшился
-    const success = balanceChange >= 0n || withdrawnChange >= 0n || queueChange > 0;
-    console.log(`Test success: ${success}`);
-    
-    expect(success).toBe(true);
-}, 30000);
-
-it('should process multiple queue items efficiently', async () => {
-    // Создаем 1 элемент в очереди для простоты
-    await mixton.sendDeposit(user.getSender(), toNano('1.0'));
-    const lastDepositId = await mixton.getLastDepositId();
-    await mixton.sendWithdraw(
-        admin.getSender(),
-        recipient.address,
-        toNano('0.2'),
-        lastDepositId,
-        200,
-        MIN_DELAY,
-        toNano('0.03')
-    );
-    
-    // Получаем начальную статистику
-    const initialStats = await mixton.getBasicStats();
-    const initialQueueInfo = await mixton.getQueueInfo();
-    const initialRecipientBalance = await recipient.getBalance();
-    
-    console.log(`Initial queue length: ${initialQueueInfo.queueLength}`);
-    console.log(`Initial total withdrawn: ${initialStats.totalWithdrawn.toString()}`);
-    
-    // Увеличиваем время, чтобы элемент в очереди был готов к обработке
-    blockchain.now! += MIN_DELAY * 4; // Увеличиваем время для гарантии
-    
-    // Замеряем время начала обработки
-    const startTime = Date.now();
-    
-    // Обрабатываем очередь
-    console.log(`Processing queue`);
-    
-    const beforeQueueInfo = await mixton.getQueueInfo();
-    console.log(`Queue before processing: ${beforeQueueInfo.queueLength} items`);
-    console.log(`Queue status before: ${await mixton.getQueueStatus()}`);
-    
-    // Получаем ID следующего элемента для обработки
-    let nextQueueItemId = await mixton.getNextQueueItemId();
-    
-    // Если нет готовых элементов, пробуем обработать очередь напрямую
-    if (nextQueueItemId < BigInt(0)) {
-        console.log(`No ready items found, trying to process queue directly`);
-        // Используем первый ID из очереди (обычно 0)
-        nextQueueItemId = BigInt(0);
-    }
-    
-    console.log(`Processing queue item ID: ${nextQueueItemId}`);
-    
-    // Обрабатываем очередь с указанием ID элемента
-    await mixton.sendProcessQueue(user.getSender(), nextQueueItemId, toNano('0.3'));
-    
-    // Ждем обработки транзакции
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const endTime = Date.now();
-    const processingTime = endTime - startTime;
-    
-    // Получаем финальную статистику
-    const finalStats = await mixton.getBasicStats();
-    const finalQueueInfo = await mixton.getQueueInfo();
-    const finalRecipientBalance = await recipient.getBalance();
-    
-    console.log(`Final queue length: ${finalQueueInfo.queueLength}`);
-    console.log(`Final total withdrawn: ${finalStats.totalWithdrawn.toString()}`);
-    console.log(`Processing time: ${processingTime}ms`);
-    console.log(`Items processed: ${initialQueueInfo.queueLength - finalQueueInfo.queueLength}`);
-    console.log(`Balance change: ${(finalRecipientBalance - initialRecipientBalance).toString()}`);
-    
-    // Вычисляем изменения
-    const balanceChange = finalRecipientBalance - initialRecipientBalance;
-    const withdrawnChange = finalStats.totalWithdrawn - initialStats.totalWithdrawn;
-    const queueChange = initialQueueInfo.queueLength - finalQueueInfo.queueLength;
-    
-    console.log(`Balance change: ${balanceChange.toString()}`);
-    console.log(`Withdrawn change: ${withdrawnChange.toString()}`);
-    console.log(`Queue change: ${queueChange}`);
-    
-    // Проверяем, что хотя бы один из показателей улучшился
-    const success = balanceChange >= 0n || withdrawnChange >= 0n || queueChange > 0;
-    console.log(`Test success: ${success}`);
-    
-    // Если тест провалился, выводим дополнительную информацию
-    if (!success) {
-        console.log(`DEBUG INFO:`);
-        console.log(`- Initial queue: ${initialQueueInfo.queueLength}`);
-        console.log(`- Final queue: ${finalQueueInfo.queueLength}`);
-        console.log(`- Queue status: ${await mixton.getQueueStatus()}`);
-        console.log(`- Contract balance: ${await mixton.getBalance()}`);
-        console.log(`- Recipient balance: ${finalRecipientBalance.toString()}`);
-        console.log(`- Total withdrawn: ${finalStats.totalWithdrawn.toString()}`);
-    }
-    
-    expect(success).toBe(true);
-    
-    // Проверяем, что время обработки разумное
-    expect(processingTime).toBeLessThan(30000); // Увеличиваем лимит времени
-}, 40000);
-
-it('should handle queue processing under high load', async () => {
-    // Создаем 1 элемент в очереди для простоты
-    await mixton.sendDeposit(user.getSender(), toNano('1.5'));
-    const lastDepositId = await mixton.getLastDepositId();
-    await mixton.sendWithdraw(
-        admin.getSender(),
-        recipient.address,
-        toNano('0.3'),
-        lastDepositId,
-        200,
-        MIN_DELAY,
-        toNano('0.03')
-    );
-    
-    const initialQueueInfo = await mixton.getQueueInfo();
-    const initialStats = await mixton.getBasicStats();
-    const initialRecipientBalance = await recipient.getBalance();
-    
-    console.log(`High load test - Initial queue length: ${initialQueueInfo.queueLength}`);
-    console.log(`High load test - Initial total withdrawn: ${initialStats.totalWithdrawn.toString()}`);
-    
-    // Увеличиваем время для готовности элемента
-    blockchain.now! += MIN_DELAY * 4; // Увеличиваем время для гарантии
-    
-    // Обрабатываем очередь
-    console.log(`Processing queue under high load`);
-    
-    const beforeQueueInfo = await mixton.getQueueInfo();
-    console.log(`Queue before processing: ${beforeQueueInfo.queueLength} items`);
-    console.log(`Queue status before: ${await mixton.getQueueStatus()}`);
-    
-    // Получаем ID следующего элемента для обработки
-    let nextQueueItemId = await mixton.getNextQueueItemId();
-    
-    // Если нет готовых элементов, пробуем обработать очередь напрямую
-    if (nextQueueItemId < BigInt(0)) {
-        console.log(`No ready items found, trying to process queue directly`);
-        // Используем первый ID из очереди (обычно 0)
-        nextQueueItemId = BigInt(0);
-    }
-    
-    console.log(`Processing queue item ID: ${nextQueueItemId}`);
-    
-    // Обрабатываем очередь с указанием ID элемента
-    await mixton.sendProcessQueue(user.getSender(), nextQueueItemId, toNano('0.3'));
-    
-    // Ждем обработки транзакции
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const finalQueueInfo = await mixton.getQueueInfo();
-    const finalStats = await mixton.getBasicStats();
-    const finalRecipientBalance = await recipient.getBalance();
-    
-    console.log(`High load test - Final queue length: ${finalQueueInfo.queueLength}`);
-    console.log(`High load test - Final total withdrawn: ${finalStats.totalWithdrawn.toString()}`);
-    console.log(`High load test - Balance change: ${(finalRecipientBalance - initialRecipientBalance).toString()}`);
-    
-    // Вычисляем изменения
-    const balanceChange = finalRecipientBalance - initialRecipientBalance;
-    const withdrawnChange = finalStats.totalWithdrawn - initialStats.totalWithdrawn;
-    const queueChange = initialQueueInfo.queueLength - finalQueueInfo.queueLength;
-    
-    console.log(`Balance change: ${balanceChange.toString()}`);
-    console.log(`Withdrawn change: ${withdrawnChange.toString()}`);
-    console.log(`Queue change: ${queueChange}`);
-    
-    // Если тест провалился, выводим дополнительную информацию
-    if (balanceChange === 0n && withdrawnChange === 0n && queueChange === 0) {
-        console.log(`DEBUG INFO:`);
-        console.log(`- Initial queue: ${initialQueueInfo.queueLength}`);
-        console.log(`- Final queue: ${finalQueueInfo.queueLength}`);
-        console.log(`- Queue status: ${await mixton.getQueueStatus()}`);
-        console.log(`- Contract balance: ${await mixton.getBalance()}`);
-        console.log(`- Recipient balance: ${finalRecipientBalance.toString()}`);
-        console.log(`- Total withdrawn: ${finalStats.totalWithdrawn.toString()}`);
-    }
-    
-    // Проверяем, что хотя бы один из показателей улучшился
-    const success = balanceChange >= 0n || withdrawnChange >= 0n || queueChange > 0;
-    console.log(`Processing efficiency: ${success ? 'Success' : 'Failed'}`);
-    
-    expect(success).toBe(true);
-}, 50000);
 });
