@@ -1,4 +1,3 @@
-// wrappers/Mixton.ts
 import { compile } from '@ton/blueprint';
 import { Address, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode, toNano, beginCell, Dictionary, Slice, ExternalAddress } from '@ton/core';
 
@@ -71,6 +70,7 @@ export function mixtonConfigToCell(config: MixtonConfig): Cell {
         // Новые поля v2.3
         .storeDict(null) // queue_processing_stats
         .storeUint(0, 64) // last_queue_check
+        .storeUint(0, 64) // global_time
         .endCell();
 }
 
@@ -132,7 +132,6 @@ export interface QueueStatus {
 }
 
 // Новые интерфейсы v2.0
-
 export interface QueueDetails {
     queueLength: number;
     totalAmount: bigint;
@@ -222,6 +221,9 @@ export class Mixton implements Contract {
     }
 
     async sendDeposit(provider: ContractProvider, via: Sender, value: bigint) {
+        // ИСПРАВЛЕНО: Добавляем отладку
+        console.log('Sending deposit with value:', value.toString());
+        
         await provider.internal(via, {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
@@ -239,6 +241,11 @@ export class Mixton implements Contract {
         delay: number,
         value: bigint = toNano('0.03')
     ) {
+        // ИСПРАВЛЕНО: Проверяем, что depositId не отрицательный
+        if (depositId < 0n) {
+            throw new Error(`Invalid depositId: ${depositId}. Deposit ID cannot be negative.`);
+        }
+        
         const messageBody = beginCell()
             .storeUint(0x695f7764, 32) // op_withdraw
             .storeRef(beginCell().storeAddress(recipient).endCell())
@@ -265,6 +272,11 @@ export class Mixton implements Contract {
             throw new Error(`Invalid number of withdrawals: ${request.withdrawals.length}. Must be between 1 and ${MAX_PARTS}.`);
         }
         
+        // ИСПРАВЛЕНО: Проверяем, что depositId не отрицательный
+        if (request.depositId < 0n) {
+            throw new Error(`Invalid depositId: ${request.depositId}. Deposit ID cannot be negative.`);
+        }
+        
         const messageBody = beginCell()
             .storeUint(0x6d756c77, 32) // op_multi_withdraw
             .storeUint(request.withdrawals.length, 8)
@@ -289,28 +301,32 @@ export class Mixton implements Contract {
         });
     }
 
-// Исправленный метод sendProcessQueue
-async sendProcessQueue(
-    provider: ContractProvider,
-    via: Sender,
-    queueItemId: bigint,
-    value: bigint = toNano('0.05')
-) {
-    const messageBody = beginCell()
-        .storeUint(OP_PROCESS_QUEUE, 32) // Используем экспортированную константу
-        .storeUint(queueItemId, 64)
-        .endCell();
+    // Исправленный метод sendProcessQueue
+    async sendProcessQueue(
+        provider: ContractProvider,
+        via: Sender,
+        queueItemId: bigint,
+        value: bigint = toNano('0.05')
+    ) {
+        // ИСПРАВЛЕНО: Проверяем, что queueItemId не отрицательный
+        if (queueItemId < 0n) {
+            throw new Error(`Invalid queueItemId: ${queueItemId}. Queue item ID cannot be negative.`);
+        }
+        
+        const messageBody = beginCell()
+            .storeUint(OP_PROCESS_QUEUE, 32) // Используем экспортированную константу
+            .storeUint(queueItemId, 64)
+            .endCell();
 
-    // ИСПРАВЛЕНО: Возвращаем результат вызова provider.internal
-    const result = await provider.internal(via, {
-        value,
-        sendMode: SendMode.PAY_GAS_SEPARATELY,
-        body: messageBody,
-    });
-    
-    return result;
-}
-
+        // ИСПРАВЛЕНО: Возвращаем результат вызова provider.internal
+        const result = await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: messageBody,
+        });
+        
+        return result;
+    }
 
     // Вспомогательный метод для получения результата обработки очереди
     async getProcessQueueResult(
@@ -501,7 +517,6 @@ async sendProcessQueue(
         ]);
         return result.stack.readBoolean();
     }
-
     
     async getDepositInfo(provider: ContractProvider, depositId: bigint): Promise<DepositInfo | null> {
         try {
@@ -555,8 +570,63 @@ async sendProcessQueue(
             return { queueLength: 0, totalAmount: BigInt(0) };
         }
     }
-    
 
+    // ИСПРАВЛЕНО: Добавляем отладочные методы
+    async getDebugState(provider: ContractProvider): Promise<[number, number, number, number]> {
+        const result = await provider.get('getDebugState', []);
+        return [
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber())
+        ];
+    }
+
+    async getFullState(provider: ContractProvider): Promise<[number, number, number, number, number, number]> {
+        const result = await provider.get('getFullState', []);
+        return [
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber())
+        ];
+    }
+
+    // В файле wrappers/Mixton.ts добавляем этот метод в класс Mixton
+
+async checkState(provider: ContractProvider): Promise<[number, number, number, number]> {
+    const result = await provider.get('checkState', []);
+    return [
+        Number(result.stack.readNumber()),
+        Number(result.stack.readNumber()),
+        Number(result.stack.readNumber()),
+        Number(result.stack.readNumber())
+    ];
+}
+
+    async getDepositCount(provider: ContractProvider): Promise<number> {
+        const result = await provider.get('getDepositCount', []);
+        return result.stack.readNumber();
+    }
+
+    async getDepositsDictSize(provider: ContractProvider): Promise<number> {
+        const result = await provider.get('getDepositsDictSize', []);
+        return result.stack.readNumber();
+    }
+
+    async getDetailedDebugInfo(provider: ContractProvider): Promise<[number, number, number, number]> {
+        const result = await provider.get('getDetailedDebugInfo', []);
+        return [
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber()),
+            Number(result.stack.readNumber())
+        ];
+    }
+
+    // ИСПРАВЛЕНО: Правильный метод getQueueStatus
     async getQueueStatus(provider: ContractProvider): Promise<number> {
         try {
             const result = await provider.get('getQueueStatus', []);
@@ -656,40 +726,71 @@ async sendProcessQueue(
     }
 
     // Новый метод для получения ID следующего готового элемента очереди
-async getNextQueueItemId(provider: ContractProvider): Promise<bigint> {
-    try {
-        const result = await provider.get('getNextQueueItemId', []);
-        return result.stack.readBigNumber();
-    } catch(e) {
-        // Если get-метод бросил исключение (например, очередь пуста и он вернул -1, что не bigint)
-        // или если сам вызов failed
-        return BigInt(-1);
+    async getNextQueueItemId(provider: ContractProvider): Promise<bigint> {
+        try {
+            const result = await provider.get('getNextQueueItemId', []);
+            return result.stack.readBigNumber();
+        } catch(e) {
+            // Если get-метод бросил исключение (например, очередь пуста и он вернул -1, что не bigint)
+            // или если сам вызов failed
+            return BigInt(-1);
+        }
     }
-}
 
-// Новый метод для получения информации о конкретном элементе очереди
-async getQueueItemInfo(provider: ContractProvider, queueItemId: bigint): Promise<{ exists: boolean; isReady: boolean }> {
-    try {
-        // Сначала проверяем, существует ли элемент с таким ID
-        const queueDetails = await this.getQueueDetails(provider);
-        if (queueDetails.queueLength === 0) {
+    // Новый метод для получения информации о конкретном элементе очереди
+    async getQueueItemInfo(provider: ContractProvider, queueItemId: bigint): Promise<{ exists: boolean; isReady: boolean }> {
+        try {
+            // Сначала проверяем, существует ли элемент с таким ID
+            const queueDetails = await this.getQueueDetails(provider);
+            if (queueDetails.queueLength === 0) {
+                return { exists: false, isReady: false };
+            }
+            
+            // Проверяем статус очереди
+            const queueStatus = await this.getQueueStatus(provider);
+            const minNextTime = await this.getMinNextTime(provider);
+            
+            // Если статус 2 (очередь не пуста и время пришло), то элемент готов
+            const currentTime = Math.floor(Date.now() / 1000); // Используем текущее время
+            const isReady = queueStatus === 2 || (minNextTime > 0 && currentTime >= minNextTime);
+            
+            return { exists: true, isReady };
+        } catch (error) {
+            console.error(`Error checking queue item ${queueItemId}:`, error);
             return { exists: false, isReady: false };
         }
-        
-        // Проверяем статус очереди
-        const queueStatus = await this.getQueueStatus(provider);
-        const minNextTime = await this.getMinNextTime(provider);
-        
-        // Если статус 2 (очередь не пуста и время пришло), то элемент готов
-        const currentTime = Math.floor(Date.now() / 1000); // Используем текущее время
-        const isReady = queueStatus === 2 || (minNextTime > 0 && currentTime >= minNextTime);
-        
-        return { exists: true, isReady };
-    } catch (error) {
-        console.error(`Error checking queue item ${queueItemId}:`, error);
-        return { exists: false, isReady: false };
     }
-}
+
+    // ИСПРАВЛЕНО: Добавляем недостающие отладочные методы
+    async getCurrentTime(provider: ContractProvider): Promise<number> {
+        try {
+            const result = await provider.get('getCurrentTime', []);
+            return result.stack.readNumber();
+        } catch {
+            return Math.floor(Date.now() / 1000);
+        }
+    }
+
+    async getFirstItemTime(provider: ContractProvider): Promise<number> {
+        try {
+            const result = await provider.get('getFirstItemTime', []);
+            return result.stack.readNumber();
+        } catch {
+            return -1;
+        }
+    }
+
+    async getSimpleDebug(provider: ContractProvider): Promise<{ queueSize: number; currentTime: number }> {
+        try {
+            const result = await provider.get('getSimpleDebug', []);
+            return {
+                queueSize: result.stack.readNumber(),
+                currentTime: result.stack.readNumber()
+            };
+        } catch {
+            return { queueSize: 0, currentTime: Math.floor(Date.now() / 1000) };
+        }
+    }
 
     async isAdmin(provider: ContractProvider, address?: Address | ExternalAddress): Promise<boolean> {
         if (!address || !isInternalAddress(address)) return false;
